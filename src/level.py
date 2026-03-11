@@ -46,7 +46,7 @@ class Level:
 
     def __init__(self, csv_name: str):
         self.csv_name = csv_name
-        print(f"Loading level from {csv_name}.csv...")
+        
         self.background_layers = []
         
         self.load_backgrounds()
@@ -299,8 +299,7 @@ class Level:
 
         for filename, parallax in layers:
             path = asset_path("levels", filename)
-            print("Trying background:", path)
-
+            
             if not os.path.exists(path):
                 print("Missing background:", path)
                 continue

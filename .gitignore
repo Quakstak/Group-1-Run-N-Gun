@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+characters/__pycache__/
+weapons/__pycache__/
+enemies/__pycache__/
+pickups/__pycache__/
 
 # Virtual environments
 .venv/

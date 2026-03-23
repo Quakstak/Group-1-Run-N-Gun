@@ -1,0 +1,25 @@
+TEACHING TILESET QUICK REFERENCE
+================================
+
+File:
+    teaching_tileset.tsx
+
+Already configured:
+
+Solid:
+    74
+    83
+    88
+    89
+    98
+
+Ladder:
+    41
+    56
+    71
+
+Hazard:
+    122 (damage 50)
+
+You can add more properties in Tiled by selecting a tile in the tileset and
+using the Properties panel.

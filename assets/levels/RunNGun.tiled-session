@@ -1,5 +1,5 @@
 {
-    "activeFile": "tiled2.tmj",
+    "activeFile": "level2.tmj",
     "expandedProjectPaths": [
         "."
     ],
@@ -73,17 +73,15 @@
     "map.width": 84,
     "openFiles": [
         "level1.tmj",
-        "teaching_tileset.tsx",
-        "tiled2.tmj",
-        "forest-land-tiles.tsx"
+        "level2.tmj"
     ],
     "project": "RunNGun.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "level1.tmj",
         "level2.tmj",
         "teaching_tileset.tsx",
         "forest-land-tiles.tsx",
-        "level1.tmj",
         "tiled2.tmj",
         "level2.tmx"
     ],

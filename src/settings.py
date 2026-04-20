@@ -17,7 +17,7 @@ TILE_SIZE = 16
 # Physics tuning
 GRAVITY = 1800.0          # pixels per second^2
 PLAYER_SPEED = 260.0      # pixels per second
-JUMP_SPEED = 620.0        # pixels per second
+JUMP_SPEED = 480.0        # pixels per second
 LADDER_SPEED = 180.0      # pixels per second
 
 # Combat

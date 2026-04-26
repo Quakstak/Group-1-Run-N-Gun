@@ -95,9 +95,13 @@ class Game:
 
     # ------------------ Events ------------------
     def handle_events(self) -> None:
-        # Ben: added a left-click shoot
+        # Ben: added a left-click shoot and right-click charge shot
         if pygame.mouse.get_pressed()[0]==True and self.state == "PLAYING":  # left click also shoots
                 fired = self.player.try_shoot(self.bullets)
+                if fired and not settings.SOUND_OFF:
+                    self.sfx_shoot.play()
+        if pygame.mouse.get_pressed()[2]==True and self.state == "PLAYING":  # right click also shoots the charge attack
+                fired = self.player.try_charge_shoot(self.bullets)
                 if fired and not settings.SOUND_OFF:
                     self.sfx_shoot.play()
 
@@ -134,6 +138,12 @@ class Game:
                     # Changed shoot to J, and added left-click shoot above
                     if event.key == pygame.K_j:
                         fired = self.player.try_shoot(self.bullets)
+                        if fired and not settings.SOUND_OFF:
+                            self.sfx_shoot.play()
+                    
+                    # Ben: added a charge attack on K with a cooldown
+                    if event.key == pygame.K_k:
+                        fired = self.player.try_charge_shoot(self.bullets)
                         if fired and not settings.SOUND_OFF:
                             self.sfx_shoot.play()
 

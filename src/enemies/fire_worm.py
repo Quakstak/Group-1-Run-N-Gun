@@ -3,6 +3,7 @@ import pygame
 from ..utils import load_image, slice_sprite_sheet_row
 from ..animation import Animation
 from .enemy import Enemy
+from ..weapons.fireball import Fireball
 
 class FireWormEnemy(Enemy):
 
@@ -44,6 +45,26 @@ class FireWormEnemy(Enemy):
         self.rect = self.image.get_rect(topleft=pos)
 
         self.health = 30
+        self.weapon = Fireball()
+        self.weapon.cooldown = 0.9
+    def update(self, dt: float, level, player, enemy_bullets: pygame.sprite.Group) -> None:
+        direction = self.face_player(player)
+        self.apply_anim(dt)
+        self.weapon.update(dt)
+
+        dx = abs(player.rect.centerx - self.rect.centerx)
+        if dx > self.range_px:
+            return
+        
+        if self.weapon.can_shoot():
+            muzzle = pygame.Vector2(
+                self.rect.centerx + 16 * direction,
+                self.rect.centery + 4
+            )
+            self.weapon.shoot(enemy_bullets, muzzle, direction)
+
+
+
         
 
 

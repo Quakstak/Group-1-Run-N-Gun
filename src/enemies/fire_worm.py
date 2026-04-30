@@ -15,6 +15,7 @@ class FireWormEnemy(Enemy):
         hit_sheet = load_image("worm_hit.png")
         idle_sheet = load_image("worm_idle.png")
         walk_sheet = load_image("worm_walk.png")
+        """ loading png sprites """
 
         attack_frames = slice_sprite_sheet_row(
             attack_sheet, row=0, frame_w=64, frame_h=64, num_frames=16)
@@ -26,12 +27,14 @@ class FireWormEnemy(Enemy):
             idle_sheet, row=0, frame_w=64, frame_h=64, num_frames=9)
         walk_frames = slice_sprite_sheet_row(
             walk_sheet, row=0, frame_w=64, frame_h=64, num_frames=9)
+        """ Disecting sprites into single animations"""
         
         attack_anim = Animation(attack_frames, frame_duration=50)
         death_anim = Animation(death_frames, frame_duration=100, loop=False)   
         hit_anim = Animation(hit_frames, frame_duration=100, loop=False)
         idle_anim = Animation(idle_frames, frame_duration=150)
         walk_anim = Animation(walk_frames, frame_duration=100)
+        """ loop animations or setting duration """
 
         self.animations = {
             "attack": attack_anim,

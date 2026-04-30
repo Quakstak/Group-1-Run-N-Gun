@@ -95,17 +95,18 @@ class Game:
 
     # ------------------ Events ------------------
     def handle_events(self) -> None:
-        # Ben: added a left-click shoot and right-click charge shot
-        if pygame.mouse.get_pressed()[0]==True and self.state == "PLAYING":  # left click also shoots
+        
+
+        for event in pygame.event.get():
+            # Ben: added a left-click shoot and right-click charge shot
+            if pygame.mouse.get_pressed()[0]==True and self.state == "PLAYING":  # left click also shoots
                 fired = self.player.try_shoot(self.bullets)
                 if fired and not settings.SOUND_OFF:
                     self.sfx_shoot.play()
-        if pygame.mouse.get_pressed()[2]==True and self.state == "PLAYING":  # right click also shoots the charge attack
+            if pygame.mouse.get_pressed()[2]==True and self.state == "PLAYING":  # right click also shoots the charge attack
                 fired = self.player.try_charge_shoot(self.bullets)
                 if fired and not settings.SOUND_OFF:
                     self.sfx_shoot.play()
-
-        for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
 

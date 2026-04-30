@@ -151,6 +151,9 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_s]:
             self.climb_intent += 1
 
+        if keys[pygame.K_LSHIFT] and self.on_ground:
+            self.vel.x *= 1.5
+
     def queue_jump(self) -> None:
         """Called on key press. Stores jump for short time."""
         self.jump_buffer = self.jump_buffer_time

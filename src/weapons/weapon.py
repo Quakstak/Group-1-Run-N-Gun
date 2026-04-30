@@ -113,14 +113,14 @@ class Weapon:
     
     # Ben: added a method to check if the charge attack can be used
     def can_charge_shoot(self) -> bool:
-        return self.charge_cooldown_timer <= 0.0
+        return self.cooldown_timer <= 0.0
 
     def _start_cooldown(self) -> None:
         self.cooldown_timer = self.cooldown
 
     # Ben: added a method to start the charge attack cooldown
     def _start_charge_cooldown(self) -> None:
-        self.charge_cooldown_timer = self.charge_cooldown
+        self.cooldown_timer = self.charge_cooldown
 
     def _compute_angles(self) -> list[float]:
         """Return a list of angles in degrees for this burst.

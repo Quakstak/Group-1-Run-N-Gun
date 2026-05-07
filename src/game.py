@@ -95,12 +95,18 @@ class Game:
 
     # ------------------ Events ------------------
     def handle_events(self) -> None:
-        if pygame.mouse.get_pressed()[0]==True and self.state == "PLAYING":  # left click also shoots
+        
+
+        for event in pygame.event.get():
+            # Ben: added a left-click shoot and right-click charge shot
+            if pygame.mouse.get_pressed()[0]==True and self.state == "PLAYING":  # left click also shoots
                 fired = self.player.try_shoot(self.bullets)
                 if fired and not settings.SOUND_OFF:
                     self.sfx_shoot.play()
-
-        for event in pygame.event.get():
+            if pygame.mouse.get_pressed()[2]==True and self.state == "PLAYING":  # right click also shoots the charge attack
+                fired = self.player.try_charge_shoot(self.bullets)
+                if fired and not settings.SOUND_OFF:
+                    self.sfx_shoot.play()
             if event.type == pygame.QUIT:
                 self.running = False
 
@@ -126,12 +132,19 @@ class Game:
                         self.state = "PLAYING"
 
                 if self.state == "PLAYING":
-                    # self.player is guaranteed in PLAYING
+                    # Changed jump to Space
                     if event.key == pygame.K_SPACE and not self.player.on_ladder:
                         self.player.queue_jump()
-
+                    
+                    # Changed shoot to J, and added left-click shoot above
                     if event.key == pygame.K_j:
                         fired = self.player.try_shoot(self.bullets)
+                        if fired and not settings.SOUND_OFF:
+                            self.sfx_shoot.play()
+                    
+                    # Ben: added a charge attack on K with a cooldown
+                    if event.key == pygame.K_k:
+                        fired = self.player.try_charge_shoot(self.bullets)
                         if fired and not settings.SOUND_OFF:
                             self.sfx_shoot.play()
 
@@ -244,7 +257,9 @@ class Game:
             self.window.fill((20, 22, 30))
             self.draw_center_text("RUN & GUN PROTOTYPE", y=170, big=True, target=self.window)
             self.draw_center_text("Press ENTER to start", y=260, target=self.window)
-            self.draw_center_text("A/D move, W jump, SPACE shoot", y=310, target=self.window)
+            # Ben: Added instructions for new controls
+            self.draw_center_text("A/D Move, SPACE Jump", y=310, target=self.window)
+            self.draw_center_text("LeftClick/J Shoot, RightClick/K Power Shot", y=350, target=self.window)
             pygame.display.flip()
             return
 

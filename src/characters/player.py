@@ -151,6 +151,9 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_s]:
             self.climb_intent += 1
 
+        if keys[pygame.K_LSHIFT] and self.on_ground:
+            self.vel.x *= 1.5
+
     def queue_jump(self) -> None:
         """Called on key press. Stores jump for short time."""
         self.jump_buffer = self.jump_buffer_time
@@ -169,6 +172,16 @@ class Player(pygame.sprite.Sprite):
         )
         before = len(bullets_group)
         self.weapon.shoot(bullets_group, muzzle, self.facing)
+        return len(bullets_group) > before
+    
+    # Ben: creating a secondry fire for a charge attack with a cooldown
+    def try_charge_shoot(self, bullets_group: pygame.sprite.Group) -> bool:
+        muzzle = pygame.Vector2(
+            self.rect.centerx + self.muzzle_dx * self.facing,
+            self.rect.centery + self.muzzle_dy,
+        )
+        before = len(bullets_group)
+        self.weapon.charge_shoot(bullets_group, muzzle, self.facing)
         return len(bullets_group) > before
 
     def update(self, dt: float, level) -> None:

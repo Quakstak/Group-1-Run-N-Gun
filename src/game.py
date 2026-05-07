@@ -5,6 +5,8 @@
 from __future__ import annotations
 import pygame
 
+from src.characters.player import DustParticle
+
 from . import settings
 from .level import Level
 from .characters.wizardbob import WizardBob
@@ -62,6 +64,7 @@ class Game:
         self.player = None
 
         self.bullets = pygame.sprite.Group()
+        self.particle_group = pygame.sprite.Group()
         self.boss_bullets = pygame.sprite.Group()
         self.enemy_bullets = pygame.sprite.Group()
 
@@ -74,6 +77,7 @@ class Game:
         self.level = Level(level_file)
         self.player = WizardBob(self.level.player_spawn)
         self.bullets.empty()
+        self.particle_group.empty()
         self.boss_bullets.empty()
         self.enemy_bullets.empty()
 
@@ -135,6 +139,8 @@ class Game:
                     # Changed jump to Space
                     if event.key == pygame.K_SPACE and not self.player.on_ladder:
                         self.player.queue_jump()
+                        for _ in range(5):
+                            self.particle_group.add(DustParticle(self.player.rect.midbottom))
                     
                     # Changed shoot to J, and added left-click shoot above
                     if event.key == pygame.K_j:
@@ -169,6 +175,10 @@ class Game:
         # Update bullets (player and boss)
         for b in list(self.bullets):
             b.update(dt, self.level)
+
+        #Ben: added update for particles
+        for p in list(self.particle_group):
+            p.update(dt)
 
         for b in list(self.boss_bullets):
             b.update(dt, self.level)
@@ -293,6 +303,9 @@ class Game:
         for b in self.bullets:
             self.world.blit(b.image, (b.rect.x - self.camera_x, b.rect.y - self.camera_y))
 
+        for p in self.particle_group:
+            self.world.blit(p.image, (p.rect.x - self.camera_x, p.rect.y - self.camera_y)) 
+
         for b in self.boss_bullets:
             self.world.blit(b.image, (b.rect.x - self.camera_x, b.rect.y - self.camera_y))
 
@@ -365,3 +378,4 @@ class Game:
         overlay = pygame.Surface((settings.WINDOW_WIDTH, settings.WINDOW_HEIGHT), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 160))
         target.blit(overlay, (0, 0))
+

@@ -3,6 +3,7 @@
 # Specific characters should subclass Player and provide sprite/animation config.
 
 from __future__ import annotations
+import random
 import pygame
 
 from ..utils import load_image, slice_sprite_sheet_row
@@ -11,7 +12,25 @@ from ..weapons.pistol import Pistol
 from ..animation import Animation
 from .. import settings
 
+class DustParticle(pygame.sprite.Sprite):
+    def __init__(self, pos):
+        super().__init__()
+        size = random.randint(4, 8)
+        self.image = pygame.Surface((size, size), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (180, 160, 120, 200), (size // 2, size // 2), size // 2)
+        self.rect = self.image.get_rect(center=pos)
+        self.vel = pygame.Vector2(random.uniform(-40, 40), random.uniform(-30, -10))
+        self.lifetime = random.uniform(0.5, 1.0)
 
+    def update(self, dt):
+        self.rect.x += self.vel.x * dt
+        self.rect.y += self.vel.y * dt
+        self.lifetime -= dt
+        # Fade out over time
+        alpha = max(0, int(200 * (self.lifetime / 0.3)))
+        self.image.set_alpha(alpha)
+        if self.lifetime <= 0:
+            self.kill()
 class Player(pygame.sprite.Sprite):
     def __init__(
         self,
@@ -250,6 +269,7 @@ class Player(pygame.sprite.Sprite):
             self.on_ground = False
             self.coyote_timer = 0.0
             self.jump_buffer = 0.0
+            
 
         if self.on_ladder:
             self.on_ground = False

@@ -158,11 +158,13 @@ class Weapon:
         if not self.can_charge_shoot():
             return
 
-        # For simplicity, let's just double the bullet speed and use the same angles.
         for deg in self._compute_angles():
             rad = math.radians(deg)
+            # fires the power shot at half the speed of a regular bullet
             vx = math.cos(rad) * self.bullet_speed * .5 * direction
             vy = -math.sin(rad) * self.bullet_speed * .5  # up is negative y
+            # Shoots 2 shots at once to emulate a shot with double damage, also allows the bullet to 'peirce' through enemies that a single bullet would kill
+            bullets_group.add(ChargeBullet(pos, pygame.Vector2(vx, vy)))
             bullets_group.add(ChargeBullet(pos, pygame.Vector2(vx, vy)))
 
         # Start cooldown (could be longer than regular shoot)

@@ -258,7 +258,8 @@ class Game:
             self.draw_center_text("RUN & GUN PROTOTYPE", y=170, big=True, target=self.window)
             self.draw_center_text("Press ENTER to start", y=260, target=self.window)
             # Ben: Added instructions for new controls
-            self.draw_center_text("A/D move, SPACE jump, LeftClick/J shoot", y=310, target=self.window)
+            self.draw_center_text("A/D Move, SPACE Jump", y=310, target=self.window)
+            self.draw_center_text("LeftClick/J Shoot, RightClick/K Power Shot", y=350, target=self.window)
             pygame.display.flip()
             return
 

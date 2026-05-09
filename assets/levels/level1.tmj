@@ -29,7 +29,7 @@
                 {
                  "height":0,
                  "id":1,
-                 "name":"enemy_shooter",
+                 "name":"enemy_runner",
                  "opacity":1,
                  "rotation":0,
                  "type":"",
@@ -145,6 +145,18 @@
                  "width":0,
                  "x":695.333333333333,
                  "y":101.666666666667
+                }, 
+                {
+                 "height":0,
+                 "id":14,
+                 "name":"fire_worm",
+                 "opacity":1,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":372,
+                 "y":99
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -153,10 +165,10 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":14,
+ "nextobjectid":16,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.12.0",
+ "tiledversion":"1.12.1",
  "tileheight":16,
  "tilesets":[
         {

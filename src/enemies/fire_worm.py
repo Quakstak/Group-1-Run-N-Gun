@@ -3,7 +3,6 @@ import pygame
 from ..utils import load_image, slice_sprite_sheet_row
 from ..animation import Animation
 from .enemy import Enemy
-from ..weapons.fireball import Fireball
 
 class FireWormEnemy(Enemy):
 
@@ -18,15 +17,15 @@ class FireWormEnemy(Enemy):
         """ loading png sprites """
 
         attack_frames = slice_sprite_sheet_row(
-            attack_sheet, row=0, frame_w=64, frame_h=64, num_frames=16)
+            attack_sheet, row=0, frame_w=64, frame_h=64, num_frames=16, stride_x= 64)
         death_frames = slice_sprite_sheet_row(
-            death_sheet, row=0, frame_w=64, frame_h=64, num_frames=8)
+            death_sheet, row=0, frame_w=64, frame_h=64, num_frames=8, stride_x=64)
         hit_frames = slice_sprite_sheet_row(
-            hit_sheet, row=0, frame_w=64, frame_h=64, num_frames=3)
+            hit_sheet, row=0, frame_w=64, frame_h=64, num_frames=3, stride_x=64)
         idle_frames = slice_sprite_sheet_row(
-            idle_sheet, row=0, frame_w=64, frame_h=64, num_frames=9)
+            idle_sheet, row=0, frame_w=64, frame_h=64, num_frames=9, stride_x=64)
         walk_frames = slice_sprite_sheet_row(
-            walk_sheet, row=0, frame_w=64, frame_h=64, num_frames=9)
+            walk_sheet, row=0, frame_w=64, frame_h=64, num_frames=9, stride_x=64)
         """ Disecting sprites into single animations"""
         
         attack_anim = Animation(attack_frames, frame_duration=50)
@@ -43,32 +42,10 @@ class FireWormEnemy(Enemy):
             "idle": idle_anim,
             "walk": walk_anim
         }
-        self.current_animation = self.animations["idle"]
-        self.image = self.current_animation.get_current_frame()
+        self.current_anim = self.animations["idle"]
+        self.image = self.current_anim.image
         self.rect = self.image.get_rect(topleft=pos)
 
         self.health = 30
-        self.weapon = Fireball()
-        self.weapon.cooldown = 0.9
-    def update(self, dt: float, level, player, enemy_bullets: pygame.sprite.Group) -> None:
-        direction = self.face_player(player)
-        self.apply_anim(dt)
-        self.weapon.update(dt)
 
-        dx = abs(player.rect.centerx - self.rect.centerx)
-        if dx > self.range_px:
-            return
-        
-        if self.weapon.can_shoot():
-            muzzle = pygame.Vector2(
-                self.rect.centerx + 16 * direction,
-                self.rect.centery + 4
-            )
-            self.weapon.shoot(enemy_bullets, muzzle, direction)
-
-
-
-        
-
-
-
+       

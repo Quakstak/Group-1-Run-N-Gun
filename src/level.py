@@ -10,6 +10,7 @@ import pygame
 
 from . import settings
 from .enemies import BossEnemy, NormalEnemy, ShooterEnemy
+from .enemies.fire_worm import FireWormEnemy
 from .pickups import create_pickup
 from .utils import asset_path, load_image
 
@@ -457,6 +458,8 @@ class Level:
 
                 if name == "player":
                     self.player_spawn = (x, y - 32)
+                elif name == "fire_worm":
+                    self.enemies.add(FireWormEnemy((x, y - 32)))
                 elif name == "enemy_runner":
                     self.enemies.add(NormalEnemy((x, y - 32)))
                 elif name == "enemy_shooter":

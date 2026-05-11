@@ -5,13 +5,10 @@
 from __future__ import annotations
 import pygame
 
-from src.characters.player import DustParticle
-
 from . import settings
 from .level import Level
 from .characters.wizardbob import WizardBob
 from .utils import load_sound, asset_path, clamp
-
 
 class Game:
     def __init__(self):
@@ -68,6 +65,8 @@ class Game:
         self.boss_bullets = pygame.sprite.Group()
         self.enemy_bullets = pygame.sprite.Group()
 
+
+
         self.debug_draw_tile_regions = False
 
         self.load_level(self.level_index, f"level{self.level_index}")
@@ -108,7 +107,7 @@ class Game:
                 if fired and not settings.SOUND_OFF:
                     self.sfx_shoot.play()
             if pygame.mouse.get_pressed()[2]==True and self.state == "PLAYING":  # right click also shoots the charge attack
-                fired = self.player.try_charge_shoot(self.bullets)
+                fired = self.player.try_charge_shoot(self.bullets, self.particle_group)
                 if fired and not settings.SOUND_OFF:
                     self.sfx_shoot.play()
             if event.type == pygame.QUIT:
@@ -138,9 +137,7 @@ class Game:
                 if self.state == "PLAYING":
                     # Changed jump to Space
                     if event.key == pygame.K_SPACE and not self.player.on_ladder:
-                        self.player.queue_jump()
-                        for _ in range(5):
-                            self.particle_group.add(DustParticle(self.player.rect.midbottom))
+                        self.player.queue_jump(self.particle_group)
                     
                     # Changed shoot to J, and added left-click shoot above
                     if event.key == pygame.K_j:
@@ -150,7 +147,8 @@ class Game:
                     
                     # Ben: added a charge attack on K with a cooldown
                     if event.key == pygame.K_k:
-                        fired = self.player.try_charge_shoot(self.bullets)
+                        fired = self.player.try_charge_shoot(self.bullets, self.particle_group)
+                        
                         if fired and not settings.SOUND_OFF:
                             self.sfx_shoot.play()
 
@@ -170,7 +168,7 @@ class Game:
         keys = pygame.key.get_pressed()
         self.player.handle_input(keys)
 
-        self.player.update(dt, self.level)
+        self.player.update(dt, self.level, self.particle_group)
 
         # Update bullets (player and boss)
         for b in list(self.bullets):
@@ -194,7 +192,7 @@ class Game:
         if hazard_hits:
             hazard_damage = max(int(h.get("damage", settings.ENEMY_DAMAGE)) for h in hazard_hits)
             was_vulnerable = self.player.invuln_time <= 0.0
-            self.player.take_damage(hazard_damage)
+            self.player.take_damage(dt, hazard_damage)
             if was_vulnerable and self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
 
@@ -208,13 +206,13 @@ class Game:
 
         # --- Player vs enemies contact damage
         if pygame.sprite.spritecollideany(self.player, self.level.enemies):
-            self.player.take_damage(settings.ENEMY_DAMAGE)
+            self.player.take_damage(dt, settings.ENEMY_DAMAGE)
             if self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
 
         # --- Player vs boss contact damage
         if self.level.boss and self.level.boss.alive() and self.player.rect.colliderect(self.level.boss.rect):
-            self.player.take_damage(settings.BOSS_DAMAGE)
+            self.player.take_damage(dt, settings.BOSS_DAMAGE)
             if self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
 
@@ -224,7 +222,7 @@ class Game:
             for b in list(self.boss_bullets):
                 if b.rect.colliderect(self.player.rect):
                     b.kill()
-            self.player.take_damage(settings.BOSS_DAMAGE)
+            self.player.take_damage(dt, settings.BOSS_DAMAGE)
             if self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
 
@@ -233,15 +231,15 @@ class Game:
             for b in list(self.enemy_bullets):
                 if b.rect.colliderect(self.player.rect):
                     b.kill()
-
-            self.player.take_damage(settings.ENEMY_DAMAGE)
-
+            self.player.take_damage(dt, settings.ENEMY_DAMAGE)
+            
             if self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
 
         # --- Game over
         if self.player.is_dead():
             self.state = "GAME_OVER"
+            #pass  # Ben: removed game over condition for now to allow testing
 
         # --- Level complete: require boss dead, then touch exit flag
         boss_dead = (self.level.boss is None) or (not self.level.boss.alive())

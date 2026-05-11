@@ -12,6 +12,7 @@ from ..weapons.pistol import Pistol
 from ..animation import Animation
 from .. import settings
 
+#Ben: added a dust particle effect that can be used for jumping or other actions. It creates a small puff of dust that rises and fades out over time.
 class DustParticle(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
@@ -19,12 +20,30 @@ class DustParticle(pygame.sprite.Sprite):
         self.image = pygame.Surface((size, size), pygame.SRCALPHA)
         pygame.draw.circle(self.image, (180, 160, 120, 200), (size // 2, size // 2), size // 2)
         self.rect = self.image.get_rect(center=pos)
-        self.vel = pygame.Vector2(random.uniform(-40, 40), random.uniform(-30, -10))
+        self.vel = pygame.Vector2(random.uniform(-40, 90), random.uniform(-70, -10))
         self.lifetime = random.uniform(0.5, 1.0)
 
     def update(self, dt):
         self.rect.x += self.vel.x * dt
         self.rect.y += self.vel.y * dt
+        self.lifetime -= dt
+        # Fade out over time
+        alpha = max(0, int(200 * (self.lifetime / 0.3)))
+        self.image.set_alpha(alpha)
+        if self.lifetime <= 0:
+            self.kill()
+class RunningDustParticle(pygame.sprite.Sprite):
+    def __init__(self, pos):
+        super().__init__()
+        size = random.randint(4, 8)
+        self.image = pygame.Surface((size, size), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (180, 160, 120, 200), (size // 3, size // 3), size // 3)
+        self.rect = self.image.get_rect(center=pos)
+        self.vel = pygame.Vector2(random.uniform(-40, 90), random.uniform(-70, -10))
+        self.lifetime = random.uniform(0.5, 1.0)
+
+    def update(self, dt):
+        self.rect.x += self.vel.x * dt
         self.lifetime -= dt
         # Fade out over time
         alpha = max(0, int(200 * (self.lifetime / 0.3)))
@@ -40,9 +59,13 @@ class Player(pygame.sprite.Sprite):
         idle_row: int,
         run_row: int,
         jump_row: int,
+        attack_row: int,
+        death_row: int,
         idle_frames: int,
         run_frames: int,
         jump_frames: int,
+        attack_frames: int,
+        death_frames: int,
         frame_w: int = 32,
         frame_h: int = 32,
         stride_x: int = 32,
@@ -53,6 +76,8 @@ class Player(pygame.sprite.Sprite):
         idle_frame_duration: float = 0.15,
         run_frame_duration: float = 0.20,
         jump_frame_duration: float = 0.12,
+        attack_frame_duration: float = 0.10,
+        death_frame_duration: float = 0.15,
         max_health: int = settings.PLAYER_MAX_HEALTH,
         move_speed: float = settings.PLAYER_SPEED,
         jump_speed: float = settings.JUMP_SPEED,
@@ -96,6 +121,28 @@ class Player(pygame.sprite.Sprite):
             start_y=start_y,
             clamp=True,
         )
+        self.anim_attack = slice_sprite_sheet_row(
+            sheet,
+            row=attack_row,
+            frame_w=frame_w,
+            frame_h=frame_h,
+            num_frames=attack_frames,
+            stride_x=stride_x,
+            start_x=start_x,
+            start_y=start_y,
+            clamp=True,
+        )
+        self.anim_death = slice_sprite_sheet_row(
+            sheet,
+            row=death_row,
+            frame_w=frame_w,
+            frame_h=frame_h,
+            num_frames=death_frames,
+            stride_x=stride_x,
+            start_x=start_x,
+            start_y=start_y,
+            clamp=True,
+        )
 
         if len(self.anim_idle) < 2:
             print("[WARN] anim_idle has <2 frames. Check your sprite sheet row/frame count settings.")
@@ -115,6 +162,7 @@ class Player(pygame.sprite.Sprite):
         self.jump_speed = float(jump_speed)
         self.ladder_speed = float(settings.LADDER_SPEED)
         self.moving = False
+        self.running = False
 
         self.jump_buffer_time = 0.12
         self.jump_buffer = 0.0
@@ -133,18 +181,21 @@ class Player(pygame.sprite.Sprite):
         self.idle_anim = Animation(self.anim_idle, frame_duration=idle_frame_duration, loop=True)
         self.run_anim = Animation(self.anim_run, frame_duration=run_frame_duration, loop=True)
         self.jump_anim = Animation(self.anim_jump, frame_duration=jump_frame_duration, loop=True)
+        self.attack_anim = Animation(self.anim_attack, frame_duration=attack_frame_duration, loop=False)
+        self.death_anim = Animation(self.anim_death, frame_duration=death_frame_duration, loop=False)
 
         self.current_anim = self.idle_anim
 
     def heal(self, amount: int) -> None:
         self.health = min(self.max_health, self.health + amount)
 
-    def take_damage(self, amount: int) -> None:
+    def take_damage(self, dt, amount: int) -> None:
         if self.invuln_time > 0:
             return
         self.health -= amount
         self.invuln_time = 0.6
         if self.health < 0:
+            self.set_anim(self.death_anim, dt, speed=1.0)  # Start the death animation immediately
             self.health = 0
 
     def is_dead(self) -> bool:
@@ -171,11 +222,17 @@ class Player(pygame.sprite.Sprite):
             self.climb_intent += 1
 
         if keys[pygame.K_LSHIFT] and self.on_ground:
+            self.running = True
             self.vel.x *= 1.5
+        else:
+            self.running = False
 
-    def queue_jump(self) -> None:
+    def queue_jump(self, particle_group: pygame.sprite.Group) -> None:
         """Called on key press. Stores jump for short time."""
         self.jump_buffer = self.jump_buffer_time
+        if self.on_ground:
+            for _ in range(5):
+                particle_group.add(DustParticle(self.rect.midbottom))
 
     def cut_jump(self) -> None:
         """Called on key release for variable jump height."""
@@ -194,16 +251,18 @@ class Player(pygame.sprite.Sprite):
         return len(bullets_group) > before
     
     # Ben: creating a secondry fire for a charge attack with a cooldown
-    def try_charge_shoot(self, bullets_group: pygame.sprite.Group) -> bool:
+    def try_charge_shoot(self, bullets_group: pygame.sprite.Group, particle_group: pygame.sprite.Group) -> bool:
         muzzle = pygame.Vector2(
             self.rect.centerx + self.muzzle_dx * self.facing,
             self.rect.centery + self.muzzle_dy,
         )
         before = len(bullets_group)
-        self.weapon.charge_shoot(bullets_group, muzzle, self.facing)
+        self.set_anim(self.attack_anim, dt=0, speed=1.0)  # Start the attack animation immediately
+        self.weapon.charge_shoot(bullets_group, muzzle, self.facing, particle_group)
+        
         return len(bullets_group) > before
 
-    def update(self, dt: float, level) -> None:
+    def update(self, dt: float, level, particle_group: pygame.sprite.Group) -> None:
         if self.invuln_time > 0:
             self.invuln_time = max(0.0, self.invuln_time - dt)
 
@@ -274,12 +333,21 @@ class Player(pygame.sprite.Sprite):
         if self.on_ladder:
             self.on_ground = False
 
-        if not self.on_ground:
-            self.set_anim(self.jump_anim, dt)
-        elif self.moving:
-            self.set_anim(self.run_anim, dt)
-        else:
-            self.set_anim(self.idle_anim, dt)
+        if self.current_anim != self.death_anim:
+            if not self.on_ground:
+                self.set_anim(self.jump_anim, dt)
+            elif self.moving and self.running:
+                self.set_anim(self.run_anim, dt, speed=1.5)
+                particle_group.add(RunningDustParticle(self.rect.midbottom))
+            elif self.moving:
+                self.set_anim(self.run_anim, dt)
+            elif self.current_anim ==  self.attack_anim:
+                # If we're currently playing the attack animation, don't switch back to idle until it's done
+                if self.attack_anim.finished:
+                    self.set_anim(self.idle_anim, dt)
+                pass
+            else:
+                self.set_anim(self.idle_anim, dt)
 
     def set_anim(self, anim: Animation, dt: float, speed: float = 1.0) -> None:
         if self.current_anim is not anim:

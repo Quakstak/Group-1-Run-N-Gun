@@ -19,9 +19,13 @@ class WizardBob(Player):
             idle_row=4,
             run_row=3,
             jump_row=5,
+            attack_row=8,  # 
+            death_row=6,  # 
             idle_frames=6,
             run_frames=8,
             jump_frames=8,
+            attack_frames=3,  # 
+            death_frames=5,  # 
             frame_w=32,
             frame_h=32,
             stride_x=32,

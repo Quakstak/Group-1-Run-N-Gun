@@ -19,10 +19,31 @@
 
 from __future__ import annotations
 import math
+import random
 import pygame
 from .. import settings
 
 
+#Ben: added a dust particle effect that can be used for jumping or other actions. It creates a small puff of dust that rises and fades out over time.
+class PowerShotParticle(pygame.sprite.Sprite):
+    def __init__(self, pos):
+        super().__init__()
+        size = random.randint(4, 8)
+        self.image = pygame.Surface((size, size), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (255, 255, 255, 255), (size // 3, size // 3), size // 3)
+        self.rect = self.image.get_rect(center=pos)
+        self.vel = pygame.Vector2(random.uniform(-40, 90), random.uniform(-70, -10))
+        self.lifetime = random.uniform(0.5, 1.0)
+
+    def update(self, dt):
+        self.rect.x += self.vel.x * dt
+        self.rect.y += self.vel.y * dt
+        self.lifetime -= dt
+        # Fade out over time
+        alpha = max(0, int(200 * (self.lifetime / 0.3)))
+        self.image.set_alpha(alpha)
+        if self.lifetime <= 0:
+            self.kill()
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, pos: pygame.Vector2, vel: pygame.Vector2):
         super().__init__()
@@ -153,7 +174,7 @@ class Weapon:
         self._start_cooldown()
 
     # Ben: added a charge shoot method for a stronger attack with a longer cooldown
-    def charge_shoot(self, bullets_group: pygame.sprite.Group, pos: pygame.Vector2, direction: int) -> None:
+    def charge_shoot(self, bullets_group: pygame.sprite.Group, pos: pygame.Vector2, direction: int, particle_group: pygame.sprite.Group) -> None:
         """Fire a stronger burst spread if not on cooldown."""
         if not self.can_charge_shoot():
             return
@@ -166,6 +187,9 @@ class Weapon:
             # Shoots 2 shots at once to emulate a shot with double damage, also allows the bullet to 'peirce' through enemies that a single bullet would kill
             bullets_group.add(ChargeBullet(pos, pygame.Vector2(vx, vy)))
             bullets_group.add(ChargeBullet(pos, pygame.Vector2(vx, vy)))
+            for _ in range(8):
+                particle_group.add(PowerShotParticle(pos))
+            
 
         # Start cooldown (could be longer than regular shoot)
         self._start_charge_cooldown()

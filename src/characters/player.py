@@ -60,16 +60,15 @@ class Player(pygame.sprite.Sprite):
         run_row: int,
         jump_row: int,
         attack_row: int,
-        death_row: int,
         idle_frames: int,
         run_frames: int,
         jump_frames: int,
         attack_frames: int,
-        death_frames: int,
         frame_w: int = 32,
         frame_h: int = 32,
         stride_x: int = 32,
         start_x: int = 0,
+        attack_start_x: int = 0,
         start_y: int = 0,
         muzzle_dx: int = 16,
         muzzle_dy: int = 4,
@@ -77,9 +76,9 @@ class Player(pygame.sprite.Sprite):
         run_frame_duration: float = 0.20,
         jump_frame_duration: float = 0.12,
         attack_frame_duration: float = 0.10,
-        death_frame_duration: float = 0.15,
         max_health: int = settings.PLAYER_MAX_HEALTH,
         move_speed: float = settings.PLAYER_SPEED,
+        sprint_speed: float = settings.PLAYER_SPRINT_SPEED,
         jump_speed: float = settings.JUMP_SPEED,
         weapon: Weapon | None = None,
     ):
@@ -128,18 +127,7 @@ class Player(pygame.sprite.Sprite):
             frame_h=frame_h,
             num_frames=attack_frames,
             stride_x=stride_x,
-            start_x=start_x,
-            start_y=start_y,
-            clamp=True,
-        )
-        self.anim_death = slice_sprite_sheet_row(
-            sheet,
-            row=death_row,
-            frame_w=frame_w,
-            frame_h=frame_h,
-            num_frames=death_frames,
-            stride_x=stride_x,
-            start_x=start_x,
+            start_x=attack_start_x,
             start_y=start_y,
             clamp=True,
         )
@@ -159,6 +147,7 @@ class Player(pygame.sprite.Sprite):
         self.climb_intent = 0
 
         self.move_speed = float(move_speed)
+        self.sprint_speed = float(sprint_speed)
         self.jump_speed = float(jump_speed)
         self.ladder_speed = float(settings.LADDER_SPEED)
         self.moving = False
@@ -182,7 +171,7 @@ class Player(pygame.sprite.Sprite):
         self.run_anim = Animation(self.anim_run, frame_duration=run_frame_duration, loop=True)
         self.jump_anim = Animation(self.anim_jump, frame_duration=jump_frame_duration, loop=True)
         self.attack_anim = Animation(self.anim_attack, frame_duration=attack_frame_duration, loop=False)
-        self.death_anim = Animation(self.anim_death, frame_duration=death_frame_duration, loop=False)
+        self.shoot = 1
 
         self.current_anim = self.idle_anim
 
@@ -195,7 +184,6 @@ class Player(pygame.sprite.Sprite):
         self.health -= amount
         self.invuln_time = 0.6
         if self.health < 0:
-            self.set_anim(self.death_anim, dt, speed=1.0)  # Start the death animation immediately
             self.health = 0
 
     def is_dead(self) -> bool:
@@ -221,9 +209,9 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_s]:
             self.climb_intent += 1
 
-        if keys[pygame.K_LSHIFT] and self.on_ground:
+        if (keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]) and self.on_ground:
             self.running = True
-            self.vel.x *= 1.5
+            self.vel.x *= self.sprint_speed
         else:
             self.running = False
 
@@ -257,7 +245,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.centery + self.muzzle_dy,
         )
         before = len(bullets_group)
-        self.set_anim(self.attack_anim, dt=0, speed=1.0)  # Start the attack animation immediately
+        if self.weapon.cooldown_timer == 0.0:
+            self.shoot = 1
         self.weapon.charge_shoot(bullets_group, muzzle, self.facing, particle_group)
         
         return len(bullets_group) > before
@@ -333,21 +322,22 @@ class Player(pygame.sprite.Sprite):
         if self.on_ladder:
             self.on_ground = False
 
-        if self.current_anim != self.death_anim:
-            if not self.on_ground:
-                self.set_anim(self.jump_anim, dt)
-            elif self.moving and self.running:
-                self.set_anim(self.run_anim, dt, speed=1.5)
-                particle_group.add(RunningDustParticle(self.rect.midbottom))
-            elif self.moving:
-                self.set_anim(self.run_anim, dt)
-            elif self.current_anim ==  self.attack_anim:
-                # If we're currently playing the attack animation, don't switch back to idle until it's done
-                if self.attack_anim.finished:
-                    self.set_anim(self.idle_anim, dt)
-                pass
-            else:
+        if self.shoot == 1:
+            if self.current_anim == self.attack_anim and self.current_anim.finished:
                 self.set_anim(self.idle_anim, dt)
+                self.shoot = 0
+            else:
+                self.set_anim(self.attack_anim, dt)
+                pass
+        elif not self.on_ground:
+            self.set_anim(self.jump_anim, dt)
+        elif self.moving and self.running:
+            self.set_anim(self.run_anim, dt, speed=self.sprint_speed)
+            particle_group.add(RunningDustParticle(self.rect.midbottom))
+        elif self.moving:
+            self.set_anim(self.run_anim, dt)
+        else:
+            self.set_anim(self.idle_anim, dt)
 
     def set_anim(self, anim: Animation, dt: float, speed: float = 1.0) -> None:
         if self.current_anim is not anim:

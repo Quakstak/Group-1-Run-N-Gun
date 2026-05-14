@@ -14,7 +14,6 @@ class Game:
     def __init__(self):
         pygame.init()
         pygame.mixer.init()
-
         # ---------------------------------------------------------------------
         # Fixed OS window + separate logical "world" surface
         #
@@ -65,8 +64,6 @@ class Game:
         self.boss_bullets = pygame.sprite.Group()
         self.enemy_bullets = pygame.sprite.Group()
 
-
-
         self.debug_draw_tile_regions = False
 
         self.load_level(self.level_index, f"level{self.level_index}")
@@ -101,17 +98,20 @@ class Game:
         
 
         for event in pygame.event.get():
-            # Ben: added a left-click shoot and right-click charge shot
-            if pygame.mouse.get_pressed()[0]==True and self.state == "PLAYING":  # left click also shoots
-                fired = self.player.try_shoot(self.bullets)
-                if fired and not settings.SOUND_OFF:
-                    self.sfx_shoot.play()
-            if pygame.mouse.get_pressed()[2]==True and self.state == "PLAYING":  # right click also shoots the charge attack
-                fired = self.player.try_charge_shoot(self.bullets, self.particle_group)
-                if fired and not settings.SOUND_OFF:
-                    self.sfx_shoot.play()
             if event.type == pygame.QUIT:
                 self.running = False
+            
+            # Ben: added a left-click shoot and right-click power shot assigned to left and right clicks respectively, in addition to the J and K keys
+            if event.type == pygame.MOUSEBUTTONDOWN and self.state == "PLAYING":
+                if pygame.mouse.get_pressed()[0]==True and self.state == "PLAYING":  # left click also shoots
+                    fired = self.player.try_shoot(self.bullets)
+                    if fired and not settings.SOUND_OFF:
+                        self.sfx_shoot.play()
+                if pygame.mouse.get_pressed()[2]==True and self.state == "PLAYING":  # right click also shoots the charge attack
+                    fired = self.player.try_charge_shoot(self.bullets, self.particle_group)
+                    if fired and not settings.SOUND_OFF:
+                        self.sfx_shoot.play()
+            
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
@@ -144,7 +144,6 @@ class Game:
                         fired = self.player.try_shoot(self.bullets)
                         if fired and not settings.SOUND_OFF:
                             self.sfx_shoot.play()
-                    
                     # Ben: added a charge attack on K with a cooldown
                     if event.key == pygame.K_k:
                         fired = self.player.try_charge_shoot(self.bullets, self.particle_group)
@@ -266,7 +265,7 @@ class Game:
             self.draw_center_text("RUN & GUN PROTOTYPE", y=170, big=True, target=self.window)
             self.draw_center_text("Press ENTER to start", y=260, target=self.window)
             # Ben: Added instructions for new controls
-            self.draw_center_text("A/D Move, SPACE Jump", y=310, target=self.window)
+            self.draw_center_text("A/D Move, SPACE Jump, Shift Sprint", y=310, target=self.window)
             self.draw_center_text("LeftClick/J Shoot, RightClick/K Power Shot", y=350, target=self.window)
             pygame.display.flip()
             return
@@ -352,6 +351,10 @@ class Game:
         if self.debug_draw_tile_regions:
             debug_txt = self.font.render("F3 Debug: solid green, hazard red, ladder blue", True, (240, 230, 140))
             target.blit(debug_txt, (20, 54))
+        
+        fps = int(self.clock.get_fps())
+        fps_surface = self.font.render(f"FPS: {fps}", True, (255, 255, 255))
+        target.blit(fps_surface, (settings.WINDOW_WIDTH - 100, 20))
 
         # Boss health (when alive)
         if self.level.boss and self.level.boss.alive():

@@ -24,7 +24,7 @@ import pygame
 from .. import settings
 
 
-#Ben: added a dust particle effect that can be used for jumping or other actions. It creates a small puff of dust that rises and fades out over time.
+#Ben: added a particle effect for the power shot, its pure white and smaller then regular dust particles
 class PowerShotParticle(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()

@@ -121,13 +121,10 @@ class Weapon:
         self.bullet_speed = float(bullet_speed) if bullet_speed is not None else float(settings.BULLET_SPEED)
 
         self.cooldown_timer = 0.0
-        self.charge_cooldown_timer = 0.0 # Ben: timer for the charge attack cooldown
 
     def update(self, dt: float) -> None:
         if self.cooldown_timer > 0.0:
             self.cooldown_timer = max(0.0, self.cooldown_timer - dt)
-        if self.charge_cooldown_timer > 0.0:
-            self.charge_cooldown_timer = max(0.0, self.charge_cooldown_timer - dt)
 
     def can_shoot(self) -> bool:
         return self.cooldown_timer <= 0.0
@@ -184,6 +181,8 @@ class Weapon:
             # fires the power shot at half the speed of a regular bullet
             vx = math.cos(rad) * self.bullet_speed * .5 * direction
             vy = -math.sin(rad) * self.bullet_speed * .5  # up is negative y
+
+            
             # Shoots 2 shots at once to emulate a shot with double damage, also allows the bullet to 'peirce' through enemies that a single bullet would kill
             bullets_group.add(ChargeBullet(pos, pygame.Vector2(vx, vy)))
             bullets_group.add(ChargeBullet(pos, pygame.Vector2(vx, vy)))

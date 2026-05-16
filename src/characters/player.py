@@ -120,7 +120,19 @@ class Player(pygame.sprite.Sprite):
             start_y=start_y,
             clamp=True,
         )
+        # Ben: added animation data for regular and power shots using the framework of existing animations
         self.anim_attack = slice_sprite_sheet_row(
+            sheet,
+            row=attack_row,
+            frame_w=frame_w,
+            frame_h=frame_h,
+            num_frames=attack_frames -1,
+            stride_x=stride_x,
+            start_x=attack_start_x,
+            start_y=start_y,
+            clamp=True,
+        )
+        self.anim_powerattack = slice_sprite_sheet_row(
             sheet,
             row=attack_row,
             frame_w=frame_w,
@@ -171,7 +183,9 @@ class Player(pygame.sprite.Sprite):
         self.run_anim = Animation(self.anim_run, frame_duration=run_frame_duration, loop=True)
         self.jump_anim = Animation(self.anim_jump, frame_duration=jump_frame_duration, loop=True)
         self.attack_anim = Animation(self.anim_attack, frame_duration=attack_frame_duration, loop=False)
-        self.shoot = 1
+        self.powerattack_anim = Animation(self.anim_powerattack, frame_duration=attack_frame_duration, loop=False)
+        self.shoot = 0
+        self.pshoot = 0
 
         self.current_anim = self.idle_anim
 
@@ -235,6 +249,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.centery + self.muzzle_dy,
         )
         before = len(bullets_group)
+        if self.weapon.cooldown_timer == 0.0:
+            self.shoot = 1
         self.weapon.shoot(bullets_group, muzzle, self.facing)
         return len(bullets_group) > before
     
@@ -246,7 +262,7 @@ class Player(pygame.sprite.Sprite):
         )
         before = len(bullets_group)
         if self.weapon.cooldown_timer == 0.0:
-            self.shoot = 1
+            self.pshoot = 1
         self.weapon.charge_shoot(bullets_group, muzzle, self.facing, particle_group)
         
         return len(bullets_group) > before
@@ -318,16 +334,21 @@ class Player(pygame.sprite.Sprite):
             self.coyote_timer = 0.0
             self.jump_buffer = 0.0
             
-
         if self.on_ladder:
             self.on_ground = False
-
         if self.shoot == 1:
             if self.current_anim == self.attack_anim and self.current_anim.finished:
                 self.set_anim(self.idle_anim, dt)
                 self.shoot = 0
             else:
                 self.set_anim(self.attack_anim, dt)
+                pass
+        elif self.pshoot == 1:
+            if self.current_anim == self.powerattack_anim and self.current_anim.finished:
+                self.set_anim(self.idle_anim, dt)
+                self.pshoot = 0
+            else:
+                self.set_anim(self.powerattack_anim, dt)
                 pass
         elif not self.on_ground:
             self.set_anim(self.jump_anim, dt)

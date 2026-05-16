@@ -10,12 +10,10 @@ from .level import Level
 from .characters.wizardbob import WizardBob
 from .utils import load_sound, asset_path, clamp
 
-
 class Game:
     def __init__(self):
         pygame.init()
         pygame.mixer.init()
-
         # ---------------------------------------------------------------------
         # Fixed OS window + separate logical "world" surface
         #
@@ -62,10 +60,14 @@ class Game:
         self.player = None
 
         self.bullets = pygame.sprite.Group()
+        self.particle_group = pygame.sprite.Group()
         self.boss_bullets = pygame.sprite.Group()
         self.enemy_bullets = pygame.sprite.Group()
 
         self.debug_draw_tile_regions = False
+
+        # Ben: added FPS display toggle
+        self.display_fps = False  # toggle with F4
 
         self.load_level(self.level_index, f"level{self.level_index}")
 
@@ -74,6 +76,7 @@ class Game:
         self.level = Level(level_file)
         self.player = WizardBob(self.level.player_spawn)
         self.bullets.empty()
+        self.particle_group.empty()
         self.boss_bullets.empty()
         self.enemy_bullets.empty()
 
@@ -96,26 +99,31 @@ class Game:
     # ------------------ Events ------------------
     def handle_events(self) -> None:
         
-
         for event in pygame.event.get():
-            # Ben: added a left-click shoot and right-click charge shot
-            if pygame.mouse.get_pressed()[0]==True and self.state == "PLAYING":  # left click also shoots
-                fired = self.player.try_shoot(self.bullets)
-                if fired and not settings.SOUND_OFF:
-                    self.sfx_shoot.play()
-            if pygame.mouse.get_pressed()[2]==True and self.state == "PLAYING":  # right click also shoots the charge attack
-                fired = self.player.try_charge_shoot(self.bullets)
-                if fired and not settings.SOUND_OFF:
-                    self.sfx_shoot.play()
             if event.type == pygame.QUIT:
                 self.running = False
-
+            
+            # Ben: added a left-click shoot and right-click power shot assigned to left and right clicks respectively, in addition to the J and K keys
+            if event.type == pygame.MOUSEBUTTONDOWN and self.state == "PLAYING":
+                if pygame.mouse.get_pressed()[0] is True and self.state == "PLAYING":  # left click also shoots
+                    fired = self.player.try_shoot(self.bullets)
+                    if fired and not settings.SOUND_OFF:
+                        self.sfx_shoot.play()
+                if pygame.mouse.get_pressed()[2] is True and self.state == "PLAYING":  # right click also shoots the charge attack
+                    fired = self.player.try_charge_shoot(self.bullets, self.particle_group)
+                    if fired and not settings.SOUND_OFF:
+                        self.sfx_shoot.play()
+            
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
 
                 if event.key == pygame.K_F3:
                     self.debug_draw_tile_regions = not self.debug_draw_tile_regions
+
+                # Ben: added F4 toggle for FPS display
+                if event.key == pygame.K_F4:
+                    self.display_fps = not self.display_fps
 
                 if self.state == "START":
                     if event.key == pygame.K_RETURN:
@@ -132,19 +140,19 @@ class Game:
                         self.state = "PLAYING"
 
                 if self.state == "PLAYING":
-                    # Changed jump to Space
+                    # Ben: Changed jump to Space
                     if event.key == pygame.K_SPACE and not self.player.on_ladder:
-                        self.player.queue_jump()
+                        self.player.queue_jump(self.particle_group)
                     
-                    # Changed shoot to J, and added left-click shoot above
+                    # Ben: Changed shoot to J, and added left-click shoot above
                     if event.key == pygame.K_j:
                         fired = self.player.try_shoot(self.bullets)
                         if fired and not settings.SOUND_OFF:
                             self.sfx_shoot.play()
-                    
                     # Ben: added a charge attack on K with a cooldown
                     if event.key == pygame.K_k:
-                        fired = self.player.try_charge_shoot(self.bullets)
+                        fired = self.player.try_charge_shoot(self.bullets, self.particle_group)
+                        
                         if fired and not settings.SOUND_OFF:
                             self.sfx_shoot.play()
 
@@ -164,11 +172,15 @@ class Game:
         keys = pygame.key.get_pressed()
         self.player.handle_input(keys)
 
-        self.player.update(dt, self.level)
+        self.player.update(dt, self.level, self.particle_group)
 
         # Update bullets (player and boss)
         for b in list(self.bullets):
             b.update(dt, self.level)
+
+        # Ben: added update for particles
+        for p in list(self.particle_group):
+            p.update(dt)
 
         for b in list(self.boss_bullets):
             b.update(dt, self.level)
@@ -184,7 +196,7 @@ class Game:
         if hazard_hits:
             hazard_damage = max(int(h.get("damage", settings.ENEMY_DAMAGE)) for h in hazard_hits)
             was_vulnerable = self.player.invuln_time <= 0.0
-            self.player.take_damage(hazard_damage)
+            self.player.take_damage(dt, hazard_damage)
             if was_vulnerable and self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
 
@@ -198,13 +210,13 @@ class Game:
 
         # --- Player vs enemies contact damage
         if pygame.sprite.spritecollideany(self.player, self.level.enemies):
-            self.player.take_damage(settings.ENEMY_DAMAGE)
+            self.player.take_damage(dt, settings.ENEMY_DAMAGE)
             if self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
 
         # --- Player vs boss contact damage
         if self.level.boss and self.level.boss.alive() and self.player.rect.colliderect(self.level.boss.rect):
-            self.player.take_damage(settings.BOSS_DAMAGE)
+            self.player.take_damage(dt, settings.BOSS_DAMAGE)
             if self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
 
@@ -214,7 +226,7 @@ class Game:
             for b in list(self.boss_bullets):
                 if b.rect.colliderect(self.player.rect):
                     b.kill()
-            self.player.take_damage(settings.BOSS_DAMAGE)
+            self.player.take_damage(dt, settings.BOSS_DAMAGE)
             if self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
 
@@ -223,9 +235,8 @@ class Game:
             for b in list(self.enemy_bullets):
                 if b.rect.colliderect(self.player.rect):
                     b.kill()
-
-            self.player.take_damage(settings.ENEMY_DAMAGE)
-
+            self.player.take_damage(dt, settings.ENEMY_DAMAGE)
+            
             if self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
 
@@ -257,8 +268,8 @@ class Game:
             self.window.fill((20, 22, 30))
             self.draw_center_text("RUN & GUN PROTOTYPE", y=170, big=True, target=self.window)
             self.draw_center_text("Press ENTER to start", y=260, target=self.window)
-            # Ben: Added instructions for new controls
-            self.draw_center_text("A/D Move, SPACE Jump", y=310, target=self.window)
+            # Ben: Added instructions for new controls, seperated into two lines for readability
+            self.draw_center_text("A/D Move, SPACE Jump, Shift Sprint", y=310, target=self.window)
             self.draw_center_text("LeftClick/J Shoot, RightClick/K Power Shot", y=350, target=self.window)
             pygame.display.flip()
             return
@@ -293,6 +304,10 @@ class Game:
         for b in self.bullets:
             self.world.blit(b.image, (b.rect.x - self.camera_x, b.rect.y - self.camera_y))
 
+        # Ben: added drawing for particles
+        for p in self.particle_group:
+            self.world.blit(p.image, (p.rect.x - self.camera_x, p.rect.y - self.camera_y)) 
+
         for b in self.boss_bullets:
             self.world.blit(b.image, (b.rect.x - self.camera_x, b.rect.y - self.camera_y))
 
@@ -322,10 +337,8 @@ class Game:
             self.draw_overlay(target=self.window)
             self.draw_center_text("LEVEL COMPLETE!", y=220, big=True, target=self.window)
             self.draw_center_text("Press ENTER to replay (add more levels!)", y=290, target=self.window)
-            
+
         # DEBUG: show all idle frames in a row
-
-
         pygame.display.flip()
 
     # ------------------ UI helpers ------------------
@@ -342,6 +355,13 @@ class Game:
         if self.debug_draw_tile_regions:
             debug_txt = self.font.render("F3 Debug: solid green, hazard red, ladder blue", True, (240, 230, 140))
             target.blit(debug_txt, (20, 54))
+        
+        fps = int(self.clock.get_fps())
+        if self.display_fps:
+            fps_surface = self.font.render(f"FPS: {fps}", True, (255, 255, 255))
+        else:
+            fps_surface = self.font.render("", True, (255, 255, 255))
+        target.blit(fps_surface, (settings.WINDOW_WIDTH - 100, 20))
 
         # Boss health (when alive)
         if self.level.boss and self.level.boss.alive():
@@ -370,3 +390,4 @@ class Game:
         overlay = pygame.Surface((settings.WINDOW_WIDTH, settings.WINDOW_HEIGHT), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 160))
         target.blit(overlay, (0, 0))
+

@@ -20,7 +20,7 @@ class Enemy(pygame.sprite.Sprite):
 
         self.current_anim: Animation | None = None
         self.image = pygame.Surface((1, 1), pygame.SRCALPHA)
-        self.rect = self.image.get_rect()
+        self.rect = self.image.get_rect
 
     def take_damage(self, amount: int) -> None:
         self.health -= amount

@@ -459,7 +459,7 @@ class Level:
                 if name == "player":
                     self.player_spawn = (x, y - 32)
                 elif name == "fire_worm":
-                    self.enemies.add(FireWormEnemy((x, y - 32)))
+                    self.enemies.add(FireWormEnemy((x, y)))
                 elif name == "enemy_runner":
                     self.enemies.add(NormalEnemy((x, y - 32)))
                 elif name == "enemy_shooter":

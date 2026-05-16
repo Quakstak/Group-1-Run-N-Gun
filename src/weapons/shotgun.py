@@ -12,9 +12,12 @@ class Shotgun:
         self.pellets = 5
         self.spread_deg = 20
         self.shots_left = 3
+        self.cooldown_timer = 0.0 
 
     def update(self, dt):
         self.time_since_shot += dt
+        if self.cooldown_timer > 0.0:
+            self.cooldown_timer =max(0.0, self.cooldown_timer - dt)
 
     def shoot(self, bullets_group, pos, direction):
         if self.shots_left <= 0:
@@ -23,6 +26,7 @@ class Shotgun:
             return
 
         self.time_since_shot = 0
+        self.cooldown_timer = self.cooldown
         self.shots_left -= 1
 
         angles = [(-self.spread_deg + (2 * self.spread_deg) * (i / (self.pellets - 1))) for i in range(self.pellets)]

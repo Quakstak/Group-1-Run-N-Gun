@@ -258,7 +258,6 @@ class Level:
                 elif tile_id == self.SHOOTER_ENEMY_SPAWN:
                     self.enemies.add(ShooterEnemy((world_x, world_y - (32 - tile_size))))
                 elif tile_id == self.SHOTGUN_PICKUP:
-                    print("SHOTGUN SPAWNED AT", world_x, world_y)
                     self.pickups.add(create_pickup("shotgun", world_x, world_y))
 
     # ------------------------------------------------------------------
@@ -454,7 +453,6 @@ class Level:
         for layer in object_layers:
             for obj in layer.get("objects", []):
                 name = str(obj.get("name", "")).strip().lower()
-                print("OBJECT FOUND:", name)
                 x = int(obj.get("x", 0))
                 y = int(obj.get("y", 0))
 

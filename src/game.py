@@ -66,6 +66,8 @@ class Game:
 
         self.debug_draw_tile_regions = False
 
+        self.display_fps = False  # toggle with F4
+
         self.load_level(self.level_index, f"level{self.level_index}")
 
     def load_level(self, index: int, level_file: str = "level1") -> None:
@@ -119,6 +121,9 @@ class Game:
 
                 if event.key == pygame.K_F3:
                     self.debug_draw_tile_regions = not self.debug_draw_tile_regions
+
+                if event.key == pygame.K_F4:
+                    self.display_fps = not self.display_fps
 
                 if self.state == "START":
                     if event.key == pygame.K_RETURN:
@@ -353,7 +358,10 @@ class Game:
             target.blit(debug_txt, (20, 54))
         
         fps = int(self.clock.get_fps())
-        fps_surface = self.font.render(f"FPS: {fps}", True, (255, 255, 255))
+        if self.display_fps:
+            fps_surface = self.font.render(f"FPS: {fps}", True, (255, 255, 255))
+        else:
+            fps_surface = self.font.render("", True, (255, 255, 255))
         target.blit(fps_surface, (settings.WINDOW_WIDTH - 100, 20))
 
         # Boss health (when alive)

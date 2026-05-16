@@ -14,6 +14,7 @@ from .pickups import create_pickup
 from .utils import asset_path, load_image
 
 
+
 class BackgroundLayer:
     def __init__(self, image: pygame.Surface, parallax_factor: float = 0.5, y_offset: int = 0):
         self.image = image
@@ -69,6 +70,7 @@ class Level:
     BOSS_SPAWN = 93
     EXIT_FLAG = 94
     SHOOTER_ENEMY_SPAWN = 95
+    SHOTGUN_PICKUP = 96
 
     def __init__(self, level_name: str):
         self.level_name = level_name
@@ -255,6 +257,9 @@ class Level:
                     self.exit_rect = pygame.Rect(world_x, world_y - tile_size, tile_size, tile_size)
                 elif tile_id == self.SHOOTER_ENEMY_SPAWN:
                     self.enemies.add(ShooterEnemy((world_x, world_y - (32 - tile_size))))
+                elif tile_id == self.SHOTGUN_PICKUP:
+                    print("SHOTGUN SPAWNED AT", world_x, world_y)
+                    self.pickups.add(create_pickup("shotgun", world_x, world_y))
 
     # ------------------------------------------------------------------
     # Tiled JSON / TSX loader
@@ -449,6 +454,7 @@ class Level:
         for layer in object_layers:
             for obj in layer.get("objects", []):
                 name = str(obj.get("name", "")).strip().lower()
+                print("OBJECT FOUND:", name)
                 x = int(obj.get("x", 0))
                 y = int(obj.get("y", 0))
 
@@ -463,7 +469,7 @@ class Level:
                     self.enemies.add(ShooterEnemy((x, y - 32)))
                 elif name == "boss":
                     self.boss = BossEnemy((x, y - 64))
-                elif name in {"health", "ammo", "shield"}:
+                elif name in {"health", "ammo", "shield", "shotgun"}:
                     self.pickups.add(create_pickup(name, x, y - 32))
                 elif name == "exit":
                     width = int(obj.get("width", settings.TILE_SIZE)) or settings.TILE_SIZE

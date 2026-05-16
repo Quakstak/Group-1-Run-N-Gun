@@ -12,6 +12,7 @@ from ..animation import Animation
 from .. import settings
 
 
+
 class Player(pygame.sprite.Sprite):
     def __init__(
         self,
@@ -195,6 +196,9 @@ class Player(pygame.sprite.Sprite):
             self.coyote_timer = max(0.0, self.coyote_timer - dt)
 
         self.weapon.update(dt)
+        
+        if hasattr(self.weapon, 'shots_left') and self.weapon.shots_left <= 0:
+            self.weapon = Pistol()
 
         touching_ladder = level.rect_overlaps_ladder(self.rect)
         self.on_ladder = touching_ladder and self.climb_intent != 0

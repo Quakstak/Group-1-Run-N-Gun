@@ -337,6 +337,7 @@ class Game:
         pygame.draw.rect(target, (80, 220, 120), (x, y, int(w * hp_ratio), h))
         txt = self.font.render(f"HP: {self.player.health}/{self.player.max_health}", True, (230, 230, 230))
         target.blit(txt, (x, y + 22))
+        
 
         if self.debug_draw_tile_regions:
             debug_txt = self.font.render("F3 Debug: solid green, hazard red, ladder blue", True, (240, 230, 140))
@@ -350,6 +351,10 @@ class Game:
             pygame.draw.rect(target, (220, 90, 160), (bx, by, int(bw * ratio), bh))
             t = self.font.render("BOSS", True, (230, 230, 230))
             target.blit(t, (bx, by + 18))
+        if hasattr(self.player.weapon, 'shots_left'):
+            shots = self.player.weapon.shots_left
+            txt = self.font.render(f"SHOTGUN: {shots} shots left", True, (255, 200, 50))
+            target.blit(txt, (20, 60))          
 
     def draw_center_text(self, text: str, y: int, big: bool = False, target: pygame.Surface | None = None) -> None:
         if target is None:

@@ -143,8 +143,21 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":695.333333333333,
-                 "y":101.666666666667
+                 "x":695.666666666666,
+                 "y":108
+                }, 
+                {
+                 "height":0,
+                 "id":14,
+                 "name":"shotgun",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":352.297213622291,
+                 "y":47.1578947368421
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -152,11 +165,11 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":5,
- "nextobjectid":14,
+ "nextlayerid":6,
+ "nextobjectid":15,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.12.0",
+ "tiledversion":"1.12.1",
  "tileheight":16,
  "tilesets":[
         {

@@ -70,7 +70,6 @@ class NormalEnemy(Enemy):
 
         # animation
         self.apply_anim(dt)
-
         # fell off world
         if self.rect.top > level.pixel_height + 200:
             self.kill()

@@ -3,6 +3,7 @@
 # Specific characters should subclass Player and provide sprite/animation config.
 
 from __future__ import annotations
+import random
 import pygame
 
 from ..utils import load_image, slice_sprite_sheet_row
@@ -10,6 +11,49 @@ from ..weapons.weapon import Weapon
 from ..weapons.pistol import Pistol
 from ..animation import Animation
 from .. import settings
+
+
+# Ben: added a dust particle effect that can be used for jumping. It creates a small puff of dust that rises and fades out over time.
+class DustParticle(pygame.sprite.Sprite):
+    def __init__(self, pos):
+        super().__init__()
+        size = random.randint(4, 8)
+        self.image = pygame.Surface((size, size), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (180, 160, 120, 200), (size // 2, size // 2), size // 2)
+        self.rect = self.image.get_rect(center=pos)
+        self.vel = pygame.Vector2(random.uniform(-40, 90), random.uniform(-70, -10))
+        self.lifetime = random.uniform(0.5, 1.0)
+
+    def update(self, dt):
+        self.rect.x += self.vel.x * dt
+        self.rect.y += self.vel.y * dt
+        self.lifetime -= dt
+        # Fade out over time
+        alpha = max(0, int(200 * (self.lifetime / 0.3)))
+        self.image.set_alpha(alpha)
+        if self.lifetime <= 0:
+            self.kill()
+
+
+# Ben: added another particle that can be used for running. these are smaller and dont rise but still slide and fade over time
+class RunningDustParticle(pygame.sprite.Sprite):
+    def __init__(self, pos):
+        super().__init__()
+        size = random.randint(4, 8)
+        self.image = pygame.Surface((size, size), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (180, 160, 120, 200), (size // 3, size // 3), size // 3)
+        self.rect = self.image.get_rect(center=pos)
+        self.vel = pygame.Vector2(random.uniform(-40, 90), random.uniform(-70, -10))
+        self.lifetime = random.uniform(0.5, 1.0)
+
+    def update(self, dt):
+        self.rect.x += self.vel.x * dt
+        self.lifetime -= dt
+        # Fade out over time
+        alpha = max(0, int(200 * (self.lifetime / 0.3)))
+        self.image.set_alpha(alpha)
+        if self.lifetime <= 0:
+            self.kill()
 
 
 class Player(pygame.sprite.Sprite):
@@ -21,21 +65,26 @@ class Player(pygame.sprite.Sprite):
         idle_row: int,
         run_row: int,
         jump_row: int,
+        attack_row: int,  # Ben: added attack row for shooting animation
         idle_frames: int,
         run_frames: int,
         jump_frames: int,
+        attack_frames: int,  # Ben: added attack frames for shooting animation
         frame_w: int = 32,
         frame_h: int = 32,
         stride_x: int = 32,
         start_x: int = 0,
+        attack_start_x: int = 0,  # Ben: added attack start x for shooting animation so frames of the animation can be skipped if needed
         start_y: int = 0,
         muzzle_dx: int = 16,
         muzzle_dy: int = 4,
         idle_frame_duration: float = 0.15,
         run_frame_duration: float = 0.20,
         jump_frame_duration: float = 0.12,
+        attack_frame_duration: float = 0.10,  # Ben: added frame duration for shooting animation
         max_health: int = settings.PLAYER_MAX_HEALTH,
         move_speed: float = settings.PLAYER_SPEED,
+        sprint_speed: float = settings.PLAYER_SPRINT_SPEED,  # Ben: added sprint speed multiplier so different characters can have different sprint speeds
         jump_speed: float = settings.JUMP_SPEED,
         weapon: Weapon | None = None,
     ):
@@ -77,6 +126,29 @@ class Player(pygame.sprite.Sprite):
             start_y=start_y,
             clamp=True,
         )
+        # Ben: added animation data for regular and power shots using the framework of existing animations
+        self.anim_attack = slice_sprite_sheet_row(
+            sheet,
+            row=attack_row,
+            frame_w=frame_w,
+            frame_h=frame_h,
+            num_frames=attack_frames -1,  # Ben: Uses one less frame than the power attack so the regular shot feels smaller and weaker than the power shot
+            stride_x=stride_x,
+            start_x=attack_start_x,
+            start_y=start_y,
+            clamp=True,
+        )
+        self.anim_powerattack = slice_sprite_sheet_row(
+            sheet,
+            row=attack_row,
+            frame_w=frame_w,
+            frame_h=frame_h,
+            num_frames=attack_frames,
+            stride_x=stride_x,
+            start_x=attack_start_x,
+            start_y=start_y,
+            clamp=True,
+        )
 
         if len(self.anim_idle) < 2:
             print("[WARN] anim_idle has <2 frames. Check your sprite sheet row/frame count settings.")
@@ -93,9 +165,11 @@ class Player(pygame.sprite.Sprite):
         self.climb_intent = 0
 
         self.move_speed = float(move_speed)
+        self.sprint_speed = float(sprint_speed)
         self.jump_speed = float(jump_speed)
         self.ladder_speed = float(settings.LADDER_SPEED)
         self.moving = False
+        self.running = False
 
         self.jump_buffer_time = 0.12
         self.jump_buffer = 0.0
@@ -114,13 +188,19 @@ class Player(pygame.sprite.Sprite):
         self.idle_anim = Animation(self.anim_idle, frame_duration=idle_frame_duration, loop=True)
         self.run_anim = Animation(self.anim_run, frame_duration=run_frame_duration, loop=True)
         self.jump_anim = Animation(self.anim_jump, frame_duration=jump_frame_duration, loop=True)
+        # Ben: created animations for regular and power shots using the animation data from earlier
+        self.attack_anim = Animation(self.anim_attack, frame_duration=attack_frame_duration, loop=False)
+        self.powerattack_anim = Animation(self.anim_powerattack, frame_duration=attack_frame_duration, loop=False)
+        # Ben: added shoot and pshoot variables that i can use to track when the attack animations need to play
+        self.shoot = 0
+        self.pshoot = 0
 
         self.current_anim = self.idle_anim
 
     def heal(self, amount: int) -> None:
         self.health = min(self.max_health, self.health + amount)
 
-    def take_damage(self, amount: int) -> None:
+    def take_damage(self, dt, amount: int) -> None:
         if self.invuln_time > 0:
             return
         self.health -= amount
@@ -151,9 +231,19 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_s]:
             self.climb_intent += 1
 
-    def queue_jump(self) -> None:
+        # Ben: added sprint when either shift is held, can only be used on the ground and multiplys the playerspeed by the sprint speed multiplier
+        if (keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]) and self.on_ground:
+            self.running = True
+            self.vel.x *= self.sprint_speed
+        else:
+            self.running = False
+
+    def queue_jump(self, particle_group: pygame.sprite.Group) -> None:
         """Called on key press. Stores jump for short time."""
         self.jump_buffer = self.jump_buffer_time
+        if self.on_ground:
+            for _ in range(5):
+                particle_group.add(DustParticle(self.rect.midbottom))
 
     def cut_jump(self) -> None:
         """Called on key release for variable jump height."""
@@ -168,10 +258,28 @@ class Player(pygame.sprite.Sprite):
             self.rect.centery + self.muzzle_dy,
         )
         before = len(bullets_group)
+        # Ben: sets shoot to 1 to trigger the shooting animation in update, only triggers if shot is not on cooldown to make sure the animation lines up
+        if self.weapon.cooldown_timer == 0.0:
+            self.shoot = 1
         self.weapon.shoot(bullets_group, muzzle, self.facing)
         return len(bullets_group) > before
+    
+    # Ben: creating a secondry fire for a charge attack with a cooldown
+    # Ben: also added the particle group parameter so that the chrage shot can spawn particles when fired
+    def try_charge_shoot(self, bullets_group: pygame.sprite.Group, particle_group: pygame.sprite.Group) -> bool:
+        muzzle = pygame.Vector2(
+            self.rect.centerx + self.muzzle_dx * self.facing,
+            self.rect.centery + self.muzzle_dy,
+        )
+        before = len(bullets_group)
+        # Ben: sets pshoot to 1 to trigger the power shoot animation in update, only triggers if shot is not on cooldown to make sure the animation lines up
+        if self.weapon.cooldown_timer == 0.0:
+            self.pshoot = 1
+        self.weapon.charge_shoot(bullets_group, muzzle, self.facing, particle_group)
+        
+        return len(bullets_group) > before
 
-    def update(self, dt: float, level) -> None:
+    def update(self, dt: float, level, particle_group: pygame.sprite.Group) -> None:
         if self.invuln_time > 0:
             self.invuln_time = max(0.0, self.invuln_time - dt)
 
@@ -182,6 +290,9 @@ class Player(pygame.sprite.Sprite):
             self.coyote_timer = max(0.0, self.coyote_timer - dt)
 
         self.weapon.update(dt)
+        
+        if hasattr(self.weapon, 'shots_left') and self.weapon.shots_left <= 0:
+            self.weapon = Pistol()
 
         touching_ladder = level.rect_overlaps_ladder(self.rect)
         self.on_ladder = touching_ladder and self.climb_intent != 0
@@ -237,12 +348,36 @@ class Player(pygame.sprite.Sprite):
             self.on_ground = False
             self.coyote_timer = 0.0
             self.jump_buffer = 0.0
-
+            
         if self.on_ladder:
             self.on_ground = False
 
-        if not self.on_ground:
+        # Ben: added animation check for shooting and power shooting, these have priority over all other animations to make sure they play fully and without interruption
+        if self.shoot == 1:
+            # Ben: checks if shoot animation has finished, if so returns to idle and resets the shoot variable, if not it sets/continues the shoot animation
+            if self.current_anim == self.attack_anim and self.current_anim.finished:
+                self.set_anim(self.idle_anim, dt)
+                self.shoot = 0
+            else:
+                self.set_anim(self.attack_anim, dt)
+                # Ben: pass prevents the rest of the animation checks from overwriteing this animation
+                pass
+        elif self.pshoot == 1:
+            # Ben: same logic for power shot, since both attacks share a cooldown they wont overlap or interrupt each other
+            if self.current_anim == self.powerattack_anim and self.current_anim.finished:
+                self.set_anim(self.idle_anim, dt)
+                self.pshoot = 0
+            else:
+                self.set_anim(self.powerattack_anim, dt)
+                pass
+        elif not self.on_ground:
             self.set_anim(self.jump_anim, dt)
+        # Ben: added altered animation check for sprinting
+        elif self.moving and self.running:
+            # Ben: added sprint speed multiplier to make the animation run at a faster speed while sprinting
+            self.set_anim(self.run_anim, dt, speed=self.sprint_speed)
+            # Ben: also added a spawn of running dust paricles while sprinting
+            particle_group.add(RunningDustParticle(self.rect.midbottom))
         elif self.moving:
             self.set_anim(self.run_anim, dt)
         else:

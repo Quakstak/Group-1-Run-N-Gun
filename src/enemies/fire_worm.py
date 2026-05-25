@@ -64,6 +64,7 @@ class FireWormEnemy(Enemy):
         self.current_anim = new_anim 
         if hasattr(self.current_anim, 'reset'):
             self.current_anim.reset()
+            
     """Allowing the enemy to change its animation state based on scenario in game"""
 
     def take_damage(self, amount: int) -> None:
@@ -83,6 +84,7 @@ class FireWormEnemy(Enemy):
                 self.kill()
 
             return
+        
         """once the enemy is dead it disapears of the screen """
 
         dist_x = player.rect.centerx - self.rect.centerx
@@ -102,6 +104,7 @@ class FireWormEnemy(Enemy):
             self.image = self.current_anim.image
             
             return
+        
         """ once the enemy kills the player it goes back to the idle animation"""
 
         if abs_dist <= self.attack_range and y_dist < 40:
@@ -110,6 +113,7 @@ class FireWormEnemy(Enemy):
         else:
             self.change_state("IDLE", self.idle_anim)
             self.vel.x = self.base_speed * self.facing
+
         """ If the enemy is in the attack range of the player it goes to the attack 
             state and if not then the enemy is in idle, enemy also faces player in attack state"""
 

@@ -9,7 +9,7 @@ from typing import Any
 import pygame
 
 from . import settings
-from .enemies import BossEnemy, NormalEnemy, ShooterEnemy
+from .enemies import BossEnemy, NormalEnemy, ShooterEnemy, FireWormEnemy
 from .pickups import create_pickup
 from .utils import asset_path, load_image
 
@@ -70,7 +70,8 @@ class Level:
     BOSS_SPAWN = 93
     EXIT_FLAG = 94
     SHOOTER_ENEMY_SPAWN = 95
-    SHOTGUN_PICKUP = 96
+    FIREWORM_ENEMY_SPAWN = 96
+    SHOTGUN_PICKUP = 97
 
     def __init__(self, level_name: str):
         self.level_name = level_name
@@ -259,6 +260,8 @@ class Level:
                     self.enemies.add(ShooterEnemy((world_x, world_y - (32 - tile_size))))
                 elif tile_id == self.SHOTGUN_PICKUP:
                     self.pickups.add(create_pickup("shotgun", world_x, world_y))
+                elif tile_id == self.FIREWORM_ENEMY_SPAWN:
+                    self.enemies.add(FireWormEnemy((world_x, world_y - (32 - tile_size))))
 
     # ------------------------------------------------------------------
     # Tiled JSON / TSX loader
@@ -469,6 +472,8 @@ class Level:
                     self.boss = BossEnemy((x, y - 64))
                 elif name in {"health", "ammo", "shield", "shotgun"}:
                     self.pickups.add(create_pickup(name, x, y - 32))
+                elif name == "fire_worm":
+                    self.enemies.add(FireWormEnemy((x, y - 32)))
                 elif name == "exit":
                     width = int(obj.get("width", settings.TILE_SIZE)) or settings.TILE_SIZE
                     height = int(obj.get("height", settings.TILE_SIZE)) or settings.TILE_SIZE

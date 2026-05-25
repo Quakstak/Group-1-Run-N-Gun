@@ -157,6 +157,19 @@
                  "width":0,
                  "x":369,
                  "y":98
+                }, 
+                {
+                 "height":0,
+                 "id":16,
+                 "name":"shotgun",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":121.333333333333,
+                 "y":72.6666666666667
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -165,7 +178,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":16,
+ "nextobjectid":17,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.1",

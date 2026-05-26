@@ -6,6 +6,8 @@ from __future__ import annotations
 import random
 import pygame
 
+from src.weapons.shotgun import Shotgun
+
 from ..utils import load_image, slice_sprite_sheet_row
 from ..weapons.weapon import Weapon
 from ..weapons.pistol import Pistol

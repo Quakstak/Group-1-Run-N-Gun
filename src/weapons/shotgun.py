@@ -37,6 +37,6 @@ class Shotgun:
             vy = -math.sin(rad) * settings.BULLET_SPEED
             bullets_group.add(Bullet(pos, pygame.Vector2(vx, vy)))
 
-    def charge_shoot(self, bullets_group, pos, direction):
+    def charge_shoot(self, bullets_group, pos, direction, particle_group):
         
         pass    

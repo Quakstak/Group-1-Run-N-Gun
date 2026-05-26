@@ -7,6 +7,7 @@ from . import settings
 from .level import Level
 from .characters.wizardbob import WizardBob
 from .utils import load_sound, asset_path, clamp
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -56,6 +57,7 @@ class Game:
         # Ben: added FPS display toggle
         self.display_fps = False # toggle with F4
         self.load_level(self.level_index, f"level{self.level_index}")
+
     def load_level(self, index: int, level_file: str = "level1") -> None:
         # You can expand this into a list of levels later.
         self.level = Level(level_file)
@@ -67,6 +69,7 @@ class Game:
         # Reset camera so the start feels consistent
         self.camera_x = 0.0
         self.camera_y = 0.0
+
     # ------------------ Main loop ------------------
     def run(self) -> None:
         while self.running:
@@ -76,13 +79,13 @@ class Game:
             self.update(dt)
             self.draw()
         pygame.quit()
+
     # ------------------ Events ------------------
     def handle_events(self) -> None:
-       
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-           
+
             # Ben: added a left-click shoot and right-click power shot assigned to left and right clicks respectively, in addition to the J and K keys
             if event.type == pygame.MOUSEBUTTONDOWN and self.state == "PLAYING":
                 if pygame.mouse.get_pressed()[0] is True and self.state == "PLAYING": # left click also shoots
@@ -93,7 +96,7 @@ class Game:
                     fired = self.player.try_charge_shoot(self.bullets, self.particle_group)
                     if fired and not settings.SOUND_OFF:
                         self.sfx_shoot.play()
-           
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
@@ -102,6 +105,7 @@ class Game:
                 # Ben: added F4 toggle for FPS display
                 if event.key == pygame.K_F4:
                     self.display_fps = not self.display_fps
+
                 if self.state == "START":
                     if event.key == pygame.K_RETURN:
                         self.state = "PLAYING"
@@ -112,15 +116,16 @@ class Game:
                 elif self.state == "LEVEL_COMPLETE":
                     if event.key == pygame.K_RETURN:
                         if self.level.level_name in ("level1", "level1.tmj"):
-                            self.load_level(self.level_index, "level2")   # Level 1 complete → Level 2
+                            self.load_level(self.level_index, "level2")   # Level 1 complete → go to Level 2
                         else:
                             self.load_level(self.level_index)             # Level 2 complete → back to Level 1
                         self.state = "PLAYING"
+
                 if self.state == "PLAYING":
                     # Ben: Changed jump to Space
                     if event.key == pygame.K_SPACE and not self.player.on_ladder:
                         self.player.queue_jump(self.particle_group)
-                   
+
                     # Ben: Changed shoot to J, and added left-click shoot above
                     if event.key == pygame.K_j:
                         fired = self.player.try_shoot(self.bullets)
@@ -129,12 +134,13 @@ class Game:
                     # Ben: added a charge attack on K with a cooldown
                     if event.key == pygame.K_k:
                         fired = self.player.try_charge_shoot(self.bullets, self.particle_group)
-                       
                         if fired and not settings.SOUND_OFF:
                             self.sfx_shoot.play()
+
             if event.type == pygame.KEYUP and self.state == "PLAYING":
                 if event.key == pygame.K_w:
                     self.player.cut_jump()
+
     # ------------------ Update ------------------
     def update(self, dt: float) -> None:
         if self.state != "PLAYING":
@@ -197,7 +203,6 @@ class Game:
                 if b.rect.colliderect(self.player.rect):
                     b.kill()
             self.player.take_damage(dt, settings.ENEMY_DAMAGE)
-           
             if self.player.invuln_time > 0.0 and not settings.SOUND_OFF:
                 self.sfx_hurt.play()
         # --- Game over
@@ -216,6 +221,7 @@ class Game:
         target_y = clamp(target_y, 0, max(0, self.level.pixel_height - vh))
         self.camera_x += (target_x - self.camera_x) * settings.CAMERA_LERP
         self.camera_y += (target_y - self.camera_y) * settings.CAMERA_LERP
+
     # ------------------ Draw ------------------
     def draw(self) -> None:
         # START screen + UI should be fixed-size, so they draw directly to the window.
@@ -282,6 +288,7 @@ class Game:
                 self.draw_center_text("Press ENTER to replay Level 1", y=290, target=self.window)
         # DEBUG: show all idle frames in a row
         pygame.display.flip()
+
     # ------------------ UI helpers ------------------
     def draw_ui(self, target: pygame.Surface) -> None:
         # Health bar (fixed window coords)
@@ -291,11 +298,11 @@ class Game:
         pygame.draw.rect(target, (80, 220, 120), (x, y, int(w * hp_ratio), h))
         txt = self.font.render(f"HP: {self.player.health}/{self.player.max_health}", True, (230, 230, 230))
         target.blit(txt, (x, y + 22))
-       
+
         if self.debug_draw_tile_regions:
             debug_txt = self.font.render("F3 Debug: solid green, hazard red, ladder blue", True, (240, 230, 140))
             target.blit(debug_txt, (20, 54))
-       
+
         fps = int(self.clock.get_fps())
         if self.display_fps:
             fps_surface = self.font.render(f"FPS: {fps}", True, (255, 255, 255))
@@ -314,6 +321,7 @@ class Game:
             shots = self.player.weapon.shots_left
             txt = self.font.render(f"SHOTGUN: {shots} shots left", True, (255, 200, 50))
             target.blit(txt, (20, 60))
+
     def draw_center_text(self, text: str, y: int, big: bool = False, target: pygame.Surface | None = None) -> None:
         if target is None:
             target = self.window
@@ -321,6 +329,7 @@ class Game:
         surf = f.render(text, True, (240, 240, 240))
         rect = surf.get_rect(center=(settings.WINDOW_WIDTH // 2, y))
         target.blit(surf, rect)
+
     def draw_overlay(self, target: pygame.Surface | None = None) -> None:
         if target is None:
             target = self.window

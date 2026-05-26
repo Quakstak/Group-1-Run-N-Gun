@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.10" tiledversion="1.12.1" name="Ladder1" tilewidth="16" tileheight="16" tilecount="4" columns="2">
- <image source="../../../../../Downloads/Free Industrial Zone Tileset/3 Objects/Ladder1.png" width="32" height="32"/>
+ <image source="Ladder1.png" width="32" height="32"/>
  <tile id="0">
   <properties>
    <property name="ladder" type="bool" value="true"/>

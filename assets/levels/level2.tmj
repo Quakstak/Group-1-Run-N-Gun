@@ -307,6 +307,71 @@
                  "width":0,
                  "x":1200.33333333333,
                  "y":330.666666666667
+                }, 
+                {
+                 "height":0,
+                 "id":57,
+                 "name":"fire_worm",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1124.75,
+                 "y":333
+                }, 
+                {
+                 "height":0,
+                 "id":58,
+                 "name":"fire_worm",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1057.75,
+                 "y":253.25
+                }, 
+                {
+                 "height":0,
+                 "id":59,
+                 "name":"fire_worm",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1249.75,
+                 "y":253.25
+                }, 
+                {
+                 "height":0,
+                 "id":60,
+                 "name":"fire_worm",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1308.5,
+                 "y":331.5
+                }, 
+                {
+                 "height":0,
+                 "id":61,
+                 "name":"fire_worm",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":752.75,
+                 "y":330.5
                 }],
          "opacity":1,
          "properties":[
@@ -321,7 +386,7 @@
          "y":0
         }],
  "nextlayerid":4,
- "nextobjectid":57,
+ "nextobjectid":62,
  "orientation":"orthogonal",
  "properties":[
         {

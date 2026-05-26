@@ -281,6 +281,32 @@
                  "width":0,
                  "x":107.75,
                  "y":301.75
+                }, 
+                {
+                 "height":0,
+                 "id":55,
+                 "name":"fire_worm",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":665.333333333333,
+                 "y":332.333333333333
+                }, 
+                {
+                 "height":0,
+                 "id":56,
+                 "name":"fire_worm",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1200.33333333333,
+                 "y":330.666666666667
                 }],
          "opacity":1,
          "properties":[
@@ -295,7 +321,7 @@
          "y":0
         }],
  "nextlayerid":4,
- "nextobjectid":54,
+ "nextobjectid":57,
  "orientation":"orthogonal",
  "properties":[
         {

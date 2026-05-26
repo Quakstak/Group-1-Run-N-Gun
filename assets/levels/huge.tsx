@@ -3,7 +3,7 @@
  <properties>
   <property name="solid" type="bool" value="true"/>
  </properties>
- <image source="../../../../../Downloads/Platformer Asset All/Platformer Asset All/Platformer Asset All H.png" width="1616" height="2080"/>
+ <image source="Platformer Asset All H.png" width="1616" height="2080"/>
  <tile id="0">
   <properties>
    <property name="solid" type="bool" value="true"/>

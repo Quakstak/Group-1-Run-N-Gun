@@ -183,6 +183,7 @@ class Player(pygame.sprite.Sprite):
         self.health = max_health
         self.max_health = max_health
         self.invuln_time = 0.0
+        self.ammo = 0
 
         self.muzzle_dx = muzzle_dx
         self.muzzle_dy = muzzle_dy

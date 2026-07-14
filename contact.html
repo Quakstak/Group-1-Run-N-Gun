@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Me • Toby Hall</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='23' font-size='22' font-weight='700' fill='%23ef4444' text-anchor='middle' font-family='Inter, system-ui, sans-serif'%3ETH%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+
+        /* ── THEME TOKENS ── */
+        :root {
+            --accent:         #ef4444;
+            --accent-hover:   #dc2626;
+            --accent-shadow:  rgba(239,68,68,0.30);
+            --bg:             #050505;
+            --bg-alt:         #0a0a0a;
+            --surface:        rgba(15,15,15,0.75);
+            --surface-border: rgba(255,255,255,0.08);
+            --nav-bg:         rgba(5,5,5,0.95);
+            --nav-border:     rgba(255,255,255,0.10);
+            --text:           #f4f4f5;
+            --text-muted:     #a1a1aa;
+            --text-faint:     #6b7280;
+            --text-body:      #d1d5db;
+            --card-badge-bg:  rgba(0,0,0,0.65);
+            --card-badge-txt: #d4d4d8;
+            --tag-bg:         rgba(255,255,255,0.05);
+            --tag-text:       #a1a1aa;
+            --divider:        rgba(255,255,255,0.08);
+            --section-border: rgba(255,255,255,0.10);
+            --thumb-from:     rgba(127,17,17,0.45);
+            --thumb-to:       #000;
+            --thumb-fade:     rgba(0,0,0,0.80);
+            --footer-text:    #6b7280;
+            --mobile-bg:      #050505;
+            --hover-border:   rgba(239,68,68,0.30);
+        }
+        [data-theme="light"] {
+            --bg:             #f7f7f7;
+            --bg-alt:         #ffffff;
+            --surface:        rgba(255,255,255,0.72);
+            --surface-border: rgba(0,0,0,0.07);
+            --nav-bg:         rgba(247,247,247,0.95);
+            --nav-border:     rgba(0,0,0,0.08);
+            --text:           #111111;
+            --text-muted:     #555555;
+            --text-faint:     #888888;
+            --text-body:      #374151;
+            --card-badge-bg:  rgba(255,255,255,0.85);
+            --card-badge-txt: #444444;
+            --tag-bg:         rgba(0,0,0,0.05);
+            --tag-text:       #555555;
+            --divider:        rgba(0,0,0,0.08);
+            --section-border: rgba(0,0,0,0.08);
+            --thumb-from:     rgba(254,202,202,0.80);
+            --thumb-to:       #fef2f2;
+            --thumb-fade:     rgba(255,255,255,0.60);
+            --footer-text:    #aaaaaa;
+            --mobile-bg:      #ffffff;
+            --hover-border:   rgba(239,68,68,0.25);
+        }
+
+        /* ── BASE ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.35s ease, color 0.35s ease;
+            -webkit-font-smoothing: antialiased;
+        }
+        a { color: inherit; text-decoration: none; }
+        .heading { font-family: 'Space Grotesk','Inter',sans-serif; font-weight:600; letter-spacing:-0.04em; }
+
+        /* ── GLASS ── */
+        .glass {
+            background: var(--surface);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--surface-border);
+            transition: background 0.35s ease, border-color 0.35s ease;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: sticky; top:0; z-index:50;
+            border-bottom: 1px solid var(--nav-border);
+            background: var(--nav-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            transition: background 0.35s ease, border-color 0.35s ease;
+        }
+        .nav-link { transition: color 0.2s; color: var(--text-muted); font-size:0.875rem; font-weight:500; }
+        .nav-link:hover { color: var(--accent); }
+
+        /* ── TOGGLE ── */
+        .theme-toggle { display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
+        .toggle-track { width:44px; height:24px; border-radius:12px; background:#333; position:relative; transition:background 0.3s ease; flex-shrink:0; }
+        [data-theme="light"] .toggle-track { background:#d1d5db; }
+        .toggle-thumb { position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); display:flex; align-items:center; justify-content:center; font-size:10px; }
+        [data-theme="light"] .toggle-thumb { transform:translateX(20px); }
+        .toggle-label { font-size:0.72rem; font-weight:600; letter-spacing:0.06em; color:var(--text-muted); transition:color 0.3s; }
+
+        /* ── SCROLL ANIMATIONS ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.65s cubic-bezier(0.23,1,0.32,1),
+                        transform 0.65s cubic-bezier(0.23,1,0.32,1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Staggered children */
+        .reveal-stagger > * {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.55s cubic-bezier(0.23,1,0.32,1),
+                        transform 0.55s cubic-bezier(0.23,1,0.32,1);
+        }
+        .reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:translateY(0); transition-delay:0.05s; }
+        .reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:translateY(0); transition-delay:0.15s; }
+        .reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:translateY(0); transition-delay:0.25s; }
+        .reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:translateY(0); transition-delay:0.35s; }
+        .reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:translateY(0); transition-delay:0.45s; }
+
+        /* ── MISC SHARED ── */
+        .horizontal-scroll { scrollbar-width:none; -ms-overflow-style:none; }
+        .horizontal-scroll::-webkit-scrollbar { display:none; }
+        .thumb-gradient { background: linear-gradient(135deg, var(--thumb-from), var(--thumb-to)); transition: background 0.35s ease; }
+        .thumb-fade { background: linear-gradient(to top, var(--thumb-fade), transparent); transition: background 0.35s ease; }
+        .card-badge { background:var(--card-badge-bg); color:var(--card-badge-txt); }
+        .tag-pill { background:var(--tag-bg); color:var(--tag-text); }
+        .divider { border-color: var(--divider); }
+        .project-card { transition: transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s, border-color 0.3s; background:var(--surface); border:1px solid var(--surface-border); }
+        .project-card:hover { transform:translateY(-7px); box-shadow:0 24px 48px -12px rgba(0,0,0,0.25); border-color:var(--hover-border); }
+        .preview-card { transition:transform 0.3s cubic-bezier(0.23,1,0.32,1); background:var(--surface); border:1px solid var(--surface-border); }
+        .preview-card:hover { transform:scale(1.015); }
+        .about-box { transition: border-color 0.3s; background:var(--surface); border:1px solid var(--surface-border); }
+        .about-box:hover { border-color:var(--hover-border); }
+        .projects-section { background:var(--bg-alt); border-top:1px solid var(--section-border); border-bottom:1px solid var(--section-border); transition:background 0.35s, border-color 0.35s; }
+        .album-img { transition:transform 0.5s cubic-bezier(0.23,1,0.32,1); }
+        .album-img:hover { transform:scale(1.015); }
+        #mobile-menu { background:var(--mobile-bg); transition:background 0.35s; }
+
+        @media(prefers-reduced-motion: reduce) {
+            .reveal, .reveal-stagger > * { transition: none; opacity:1; transform:none; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-x-3">
+                    <a href="index.html" class="flex items-center justify-center w-11 h-11 rounded-2xl bg-[#ef4444] shadow-sm flex-shrink-0">
+                        <span class="font-bold text-white text-[26px] tracking-[-2.5px] font-sans">TH</span>
+                    </a>
+                    <a href="index.html" class="font-semibold text-3xl tracking-tighter hover:text-[#ef4444] transition" style="color:var(--text)">Toby Hall</a>
+                </div>
+                <div class="hidden md:flex items-center gap-x-8">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="index.html#updates" class="nav-link">Updates</a>
+                    <a href="about.html" class="nav-link">About</a>
+                    <a href="employment.html" class="nav-link">Employment</a>
+                    <a href="index.html#projects" class="nav-link">Projects</a>
+                    <a href="contact.html" class="nav-link">Contact Me</a>
+                </div>
+                <div class="flex items-center gap-x-5">
+                    <label class="theme-toggle" title="Toggle light/dark">
+                        <span class="toggle-label hidden sm:block" id="toggle-label">DARK</span>
+                        <div class="toggle-track" onclick="toggleTheme()">
+                            <div class="toggle-thumb"><span id="toggle-icon">🌙</span></div>
+                        </div>
+                    </label>
+                    <button onclick="toggleMobileMenu()" class="md:hidden w-10 h-10 flex items-center justify-center" style="color:var(--text-muted)">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div id="mobile-menu" class="hidden fixed inset-0 z-[200] md:hidden">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-12">
+                <div class="flex items-center gap-x-3">
+                    <a href="index.html" class="w-9 h-9 bg-[#ef4444] rounded-2xl flex items-center justify-center">
+                        <span class="font-bold text-white text-2xl tracking-[-2px]">TH</span>
+                    </a>
+                    <span class="font-semibold text-2xl" style="color:var(--text)">Toby Hall</span>
+                </div>
+                <button onclick="toggleMobileMenu()" class="text-4xl leading-none" style="color:var(--text-muted)">×</button>
+            </div>
+            <div class="flex flex-col gap-y-6 text-2xl font-medium" style="color:var(--text)">
+                <a href="index.html" class="py-1" onclick="toggleMobileMenu()">Home</a>
+                <a href="index.html#updates" class="py-1" onclick="toggleMobileMenu()">Updates</a>
+                <a href="about.html" class="py-1" onclick="toggleMobileMenu()">About</a>
+                <a href="employment.html" class="py-1" onclick="toggleMobileMenu()">Employment</a>
+                <a href="index.html#projects" class="py-1" onclick="toggleMobileMenu()">Projects</a>
+                <a href="contact.html" class="py-1" onclick="toggleMobileMenu()">Contact Me</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto px-8 pt-20 pb-16 text-center">
+        <div class="reveal">
+            <span class="text-[#ef4444] text-xs tracking-[3px] font-semibold">GET IN TOUCH</span>
+            <h1 class="heading text-7xl tracking-tighter mt-3 mb-4" style="color:var(--text)">Contact Me</h1>
+            <p class="text-xl max-w-md mx-auto" style="color:var(--text-muted)">Open to internships, placements, and collaborations in the games industry. Always happy to talk about games, 3D art, or anything in between.</p>
+        </div>
+
+        <div class="mt-12 reveal">
+            <button onclick="copyEmailToClipboard()"
+                    class="group inline-flex items-center justify-center gap-x-4 px-14 py-5 bg-[#ef4444] hover:bg-[#dc2626] active:scale-[0.985] transition-all text-white font-semibold text-xl rounded-3xl shadow-xl">
+                <i class="fa-solid fa-envelope text-2xl" id="email-icon"></i>
+                <span id="email-text">your.email@example.com</span>
+            </button>
+            <p class="text-xs mt-4 tracking-wider" style="color:var(--text-muted)">CLICK TO COPY EMAIL ADDRESS</p>
+        </div>
+
+        <div class="mt-6 reveal">
+            <a href="tel:07342883534" class="text-lg transition hover:text-[#ef4444]" style="color:var(--text-muted)">07342 883534</a>
+        </div>
+
+        <div class="mt-16 reveal">
+            <div class="text-xs tracking-[2px] text-[#ef4444] font-semibold mb-5">FIND ME ELSEWHERE</div>
+            <div class="flex justify-center gap-x-8 text-3xl">
+                <a href="#" class="transition hover:text-[#ef4444]" style="color:var(--text-muted)" title="ArtStation"><i class="fa-brands fa-artstation"></i></a>
+                <a href="#" class="transition hover:text-[#ef4444]" style="color:var(--text-muted)" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                <a href="#" class="transition hover:text-[#ef4444]" style="color:var(--text-muted)" title="GitHub"><i class="fa-brands fa-github"></i></a>
+                <a href="#" class="transition hover:text-[#ef4444]" style="color:var(--text-muted)" title="itch.io"><i class="fa-brands fa-itch-io"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto px-8 pb-20">
+        <div class="glass rounded-3xl p-8 reveal">
+            <h3 class="font-semibold mb-3 tracking-tight" style="color:var(--text)">A bit more detail</h3>
+            <p class="text-sm leading-relaxed" style="color:var(--text-muted)">I'm based in York, England, and open to relocation or remote work. Whether you're a studio looking for an intern, a fellow student wanting to collaborate, or just someone who wants to talk about games — feel free to reach out.</p>
+            <div class="mt-6 pt-6 border-t text-xs divider" style="color:var(--text-faint)">
+                References available on request · York St John University · 2025–2029
+            </div>
+        </div>
+    </div>
+
+    <footer class="border-t py-8 text-center text-xs divider" style="color:var(--footer-text)">
+        <p>© Toby Hall 2026 • Thank you for visiting</p>
+    </footer>
+
+    <script>
+        /* ── THEME ── */
+        const _html  = document.documentElement;
+        const _label = document.getElementById('toggle-label');
+        const _icon  = document.getElementById('toggle-icon');
+        function setTheme(t) {
+            _html.setAttribute('data-theme', t);
+            if (_label) _label.textContent = t === 'dark' ? 'DARK' : 'LIGHT';
+            if (_icon)  _icon.textContent  = t === 'dark' ? '🌙' : '☀️';
+        }
+        function toggleTheme() {
+            const next = _html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            setTheme(next);
+            localStorage.setItem('th-theme', next);
+        }
+        setTheme(localStorage.getItem('th-theme') || 'dark');
+
+        /* ── MOBILE MENU ── */
+        function toggleMobileMenu() {
+            const m = document.getElementById('mobile-menu');
+            if (m) m.classList.toggle('hidden');
+        }
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                const m = document.getElementById('mobile-menu');
+                if (m) m.classList.add('hidden');
+            }
+        });
+
+        /* ── SCROLL REVEAL ── */
+        const _observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    _observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => _observer.observe(el));
+    </script>
+    <script>
+        function copyEmailToClipboard() {
+            const email = "your.email@example.com";
+            const textSpan = document.getElementById('email-text');
+            const icon = document.getElementById('email-icon');
+            const orig = textSpan.textContent;
+            navigator.clipboard.writeText(email).then(() => {
+                textSpan.textContent = "Copied to clipboard!";
+                icon.classList.replace('fa-envelope','fa-check');
+                setTimeout(() => { textSpan.textContent = orig; icon.classList.replace('fa-check','fa-envelope'); }, 2200);
+            }).catch(() => {
+                const t = document.createElement('textarea');
+                t.value = email; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+                textSpan.textContent = "Copied!";
+                setTimeout(() => { textSpan.textContent = orig; }, 2200);
+            });
+        }
+    </script>
+</body>
+</html>

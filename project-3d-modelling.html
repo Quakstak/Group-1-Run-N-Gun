@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Modelling • Toby Hall</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='23' font-size='22' font-weight='700' fill='%23ef4444' text-anchor='middle' font-family='Inter, system-ui, sans-serif'%3ETH%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        :root {
+            --accent:#ef4444; --accent-hover:#dc2626; --accent-shadow:rgba(239,68,68,0.30);
+            --bg:#050505; --bg-alt:#0a0a0a; --surface:rgba(15,15,15,0.75); --surface-border:rgba(255,255,255,0.08);
+            --nav-bg:rgba(5,5,5,0.95); --nav-border:rgba(255,255,255,0.10);
+            --text:#f4f4f5; --text-muted:#a1a1aa; --text-faint:#6b7280; --text-body:#d1d5db;
+            --tag-bg:rgba(255,255,255,0.05); --tag-text:#a1a1aa;
+            --divider:rgba(255,255,255,0.08); --section-border:rgba(255,255,255,0.10);
+            --footer-text:#6b7280; --mobile-bg:#050505; --hover-border:rgba(239,68,68,0.30);
+        }
+        [data-theme="light"] {
+            --bg:#f7f7f7; --bg-alt:#ffffff; --surface:rgba(255,255,255,0.72); --surface-border:rgba(0,0,0,0.07);
+            --nav-bg:rgba(247,247,247,0.95); --nav-border:rgba(0,0,0,0.08);
+            --text:#111111; --text-muted:#555555; --text-faint:#888888; --text-body:#374151;
+            --tag-bg:rgba(0,0,0,0.05); --tag-text:#555555;
+            --divider:rgba(0,0,0,0.08); --section-border:rgba(0,0,0,0.08);
+            --footer-text:#aaaaaa; --mobile-bg:#ffffff; --hover-border:rgba(239,68,68,0.25);
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);transition:background 0.35s,color 0.35s;-webkit-font-smoothing:antialiased}
+        a{color:inherit;text-decoration:none}
+        .heading{font-family:'Space Grotesk','Inter',sans-serif;font-weight:600;letter-spacing:-0.04em}
+        .glass{background:var(--surface);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--surface-border);transition:background 0.35s,border-color 0.35s}
+        nav{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--nav-border);background:var(--nav-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:background 0.35s,border-color 0.35s}
+        .nav-link{transition:color 0.2s;color:var(--text-muted);font-size:0.875rem;font-weight:500}
+        .nav-link:hover{color:var(--accent)}
+        .theme-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+        .toggle-track{width:44px;height:24px;border-radius:12px;background:#333;position:relative;transition:background 0.3s;flex-shrink:0}
+        [data-theme="light"] .toggle-track{background:#d1d5db}
+        .toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);display:flex;align-items:center;justify-content:center;font-size:10px}
+        [data-theme="light"] .toggle-thumb{transform:translateX(20px)}
+        .toggle-label{font-size:0.72rem;font-weight:600;letter-spacing:0.06em;color:var(--text-muted)}
+        .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.65s cubic-bezier(0.23,1,0.32,1),transform 0.65s cubic-bezier(0.23,1,0.32,1)}
+        .reveal.visible{opacity:1;transform:translateY(0)}
+        .reveal-stagger>*{opacity:0;transform:translateY(24px);transition:opacity 0.55s cubic-bezier(0.23,1,0.32,1),transform 0.55s cubic-bezier(0.23,1,0.32,1)}
+        .reveal-stagger.visible>*:nth-child(1){opacity:1;transform:translateY(0);transition-delay:0.05s}
+        .reveal-stagger.visible>*:nth-child(2){opacity:1;transform:translateY(0);transition-delay:0.15s}
+        .reveal-stagger.visible>*:nth-child(3){opacity:1;transform:translateY(0);transition-delay:0.25s}
+        .reveal-stagger.visible>*:nth-child(4){opacity:1;transform:translateY(0);transition-delay:0.35s}
+        .reveal-stagger.visible>*:nth-child(5){opacity:1;transform:translateY(0);transition-delay:0.45s}
+        #mobile-menu{background:var(--mobile-bg);transition:background 0.35s}
+        .divider{border-color:var(--divider)}
+        .blog-caption{font-size:13.5px;line-height:1.6;color:var(--text-muted)}
+
+        /* Image hover */
+        .img-wrap{overflow:hidden;border-radius:1.5rem;cursor:pointer}
+        .img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.23,1,0.32,1);display:block}
+        .img-wrap.contain img{object-fit:contain;background:#111}
+        [data-theme="light"] .img-wrap.contain img{background:#f0f0f0}
+        .img-wrap:hover img{transform:scale(1.04)}
+
+        /* Project group card */
+        .proj-group{background:var(--surface);border:1px solid var(--surface-border);border-radius:1.5rem;padding:2rem;transition:border-color 0.3s}
+        .proj-group:hover{border-color:var(--hover-border)}
+        .group-label{font-size:0.65rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#ef4444;margin-bottom:0.4rem}
+        .group-title{font-size:1.4rem;font-weight:700;letter-spacing:-0.025em;color:var(--text);margin-bottom:0.5rem}
+        .group-desc{font-size:0.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:1.5rem}
+        .tool-row{display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:1.5rem}
+        .tool-tag{font-size:0.65rem;padding:0.15rem 0.55rem;border-radius:100px;background:var(--tag-bg);border:1px solid var(--surface-border);color:var(--tag-text)}
+
+        @media(prefers-reduced-motion:reduce){.reveal,.reveal-stagger>*{transition:none;opacity:1;transform:none}}
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-x-3">
+                    <a href="index.html" class="flex items-center justify-center w-11 h-11 rounded-2xl bg-[#ef4444] shadow-sm flex-shrink-0">
+                        <span class="font-bold text-white text-[26px] tracking-[-2.5px] font-sans">TH</span>
+                    </a>
+                    <a href="index.html" class="font-semibold text-3xl tracking-tighter hover:text-[#ef4444] transition" style="color:var(--text)">Toby Hall</a>
+                </div>
+                <div class="hidden md:flex items-center gap-x-8">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="index.html#updates" class="nav-link">Updates</a>
+                    <a href="about.html" class="nav-link">About</a>
+                    <a href="employment.html" class="nav-link">Employment</a>
+                    <a href="index.html#projects" class="nav-link">Projects</a>
+                    <a href="contact.html" class="nav-link">Contact Me</a>
+                </div>
+                <div class="flex items-center gap-x-5">
+                    <label class="theme-toggle" title="Toggle light/dark">
+                        <span class="toggle-label hidden sm:block" id="toggle-label">DARK</span>
+                        <div class="toggle-track" onclick="toggleTheme()">
+                            <div class="toggle-thumb"><span id="toggle-icon">🌙</span></div>
+                        </div>
+                    </label>
+                    <button onclick="toggleMobileMenu()" class="md:hidden w-10 h-10 flex items-center justify-center" style="color:var(--text-muted)">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="mobile-menu" class="hidden fixed inset-0 z-[200] md:hidden">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-12">
+                <div class="flex items-center gap-x-3">
+                    <a href="index.html" class="w-9 h-9 bg-[#ef4444] rounded-2xl flex items-center justify-center">
+                        <span class="font-bold text-white text-2xl tracking-[-2px]">TH</span>
+                    </a>
+                    <span class="font-semibold text-2xl" style="color:var(--text)">Toby Hall</span>
+                </div>
+                <button onclick="toggleMobileMenu()" class="text-4xl leading-none" style="color:var(--text-muted)">×</button>
+            </div>
+            <div class="flex flex-col gap-y-6 text-2xl font-medium" style="color:var(--text)">
+                <a href="index.html" class="py-1" onclick="toggleMobileMenu()">Home</a>
+                <a href="index.html#updates" class="py-1" onclick="toggleMobileMenu()">Updates</a>
+                <a href="about.html" class="py-1" onclick="toggleMobileMenu()">About</a>
+                <a href="employment.html" class="py-1" onclick="toggleMobileMenu()">Employment</a>
+                <a href="index.html#projects" class="py-1" onclick="toggleMobileMenu()">Projects</a>
+                <a href="contact.html" class="py-1" onclick="toggleMobileMenu()">Contact Me</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE HEADER -->
+    <div class="max-w-5xl mx-auto px-8 pt-14 pb-10 reveal">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
+            <span class="px-4 py-1.5 text-xs tracking-[2px] font-semibold glass rounded-3xl" style="color:var(--text-muted)">3D Art & Concept Production · 2023–Present</span>
+            <span class="text-[#ef4444] text-sm font-medium">Blender · Substance Painter · KeyShot</span>
+        </div>
+        <h1 class="heading text-7xl tracking-tighter" style="color:var(--text)">3D Modelling</h1>
+        <p class="mt-4 text-xl max-w-2xl" style="color:var(--text-muted)">A collection of 3D models, characters, environments, and props built across college and personal projects — from concept sketch to final render.</p>
+        <div class="flex flex-wrap gap-3 mt-8">
+            <div class="glass px-5 py-2 rounded-2xl text-sm flex items-center gap-x-2">
+                <i class="fa-solid fa-cube text-[#ef4444]"></i>
+                <span style="color:var(--text)">Blender · Substance Painter · KeyShot</span>
+            </div>
+            <div class="glass px-5 py-2 rounded-2xl text-sm flex items-center gap-x-2">
+                <i class="fa-solid fa-user text-[#ef4444]"></i>
+                <span style="color:var(--text)">Solo projects</span>
+            </div>
+            <div class="glass px-5 py-2 rounded-2xl text-sm flex items-center gap-x-2">
+                <i class="fa-solid fa-clock text-[#ef4444]"></i>
+                <span style="color:var(--text)">2023 – Present</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP 1: CHARACTER — ASTRONAUT ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Character Design</div>
+            <div class="group-title">Astronaut Character</div>
+            <p class="group-desc">A full character design pipeline — from pencil concept sketches exploring helmet variations, through to a fully modelled, textured and rigged character in Blender. Includes body modelling, facial detail, clothing, and bone rig for animation.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Character Modelling</span>
+                <span class="tool-tag">Rigging</span>
+                <span class="tool-tag">Concept Art</span>
+                <span class="tool-tag">Texturing</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 reveal-stagger">
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/19.png','Concept sketch — full body astronaut character with two helmet designs drawn in pencil.')">
+                        <img src="images/19.png" alt="Astronaut concept sketches">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Concept sketch —</span> Full body astronaut character with two helmet variations, drawn in pencil.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/17.png','Character model sheet — T-pose overview alongside close-ups of the head, torso, hands, and weapon prop.')">
+                        <img src="images/17.png" alt="Character model breakdown">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Model sheet —</span> T-pose with close-up breakdowns of the head, torso, hands, and weapon prop.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/18.png','Textured character with bone rig visible — arm raised showing the rig in action with PBR textures applied.')">
+                        <img src="images/18.png" alt="Textured character with rig">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Rigged & textured —</span> Character with PBR textures applied and bone rig active — arm raised to show the rig working.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/2.png','Final textured character in T-pose — dark outfit with red stripe details, balaclava, boots, and suspenders.')">
+                        <img src="images/2.png" alt="Final textured character">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Final character —</span> Fully textured T-pose — dark outfit with red details, balaclava, suspenders, and laced boots.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/1.png','Helmet render — black visor, silver outer shell, and a gold chain chin strap running across the front.')">
+                        <img src="images/1.png" alt="Helmet render">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Helmet render —</span> Black reflective visor, silver outer shell, and a gold chain chin strap.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/16.png','Hand and arm with bone rig — finger, knuckle, and wrist joints set up for full animation control in Blender.')">
+                        <img src="images/16.png" alt="Hand rig">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Hand rig —</span> Hand and forearm with finger, knuckle, and wrist bones set up in Blender.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP 2: ANCIENT GREECE / ACROPOLIS ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Environment & Architecture</div>
+            <div class="group-title">Ancient Greece — Acropolis Project</div>
+            <p class="group-desc">A large-scale historical reconstruction project modelling the Acropolis of Athens in Blender, including the Parthenon, surrounding structures, columns with PBR marble and gold textures, a walled citadel, and a low-poly Trojan Horse prop.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Substance Painter</span>
+                <span class="tool-tag">Architecture Modelling</span>
+                <span class="tool-tag">PBR Texturing</span>
+                <span class="tool-tag">Historical Reference</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 reveal-stagger">
+                <div class="md:col-span-2">
+                    <div class="img-wrap h-64" onclick="showModal('images/3.png','Full Acropolis scene — Parthenon and all surrounding structures laid out on the rocky hill platform in Blender.')">
+                        <img src="images/3.png" alt="Acropolis scene">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Full Acropolis —</span> Parthenon and all surrounding structures placed on the hill platform.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-64" onclick="showModal('images/4.png','Parthenon isolated — full temple with colonnaded exterior, pediments, and stepped base.')">
+                        <img src="images/4.png" alt="Parthenon">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Parthenon —</span> Isolated temple model with full colonnaded exterior, pediments, and stepped base.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/13.png','Blender viewport — columns placed over a historical Parthenon blueprint showing the 8x17 column layout to scale.')">
+                        <img src="images/13.png" alt="Column layout">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Blueprint reference —</span> Columns placed over a historical Parthenon plan — 8x17 layout built to measured scale.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/12.png','Column capital wireframe — close-up showing the abacus and echinus detail with clean topology.')">
+                        <img src="images/12.png" alt="Column wireframe">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Column capital wireframe —</span> Abacus and echinus detail with clean edge loop topology.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/11.png','Textured marble columns with gold band rings — PBR material applied in Substance Painter with sandy base plinth.')">
+                        <img src="images/11.png" alt="Textured columns">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Textured columns —</span> White marble with gold band rings and a sandy base plinth — PBR in Substance Painter.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/14.png','Circular walled citadel — fortified outer wall with towers, battlements, and a columned temple structure inside.')">
+                        <img src="images/14.png" alt="Walled citadel">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Walled citadel —</span> Circular fortification with towers, battlements, and a columned temple structure at the centre.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/15.png','Low-poly Trojan Horse — chunky stylised form with a wood grain texture and dark iron hoof blocks.')">
+                        <img src="images/15.png" alt="Trojan Horse">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Trojan Horse —</span> Low-poly stylised prop with wood grain texture and dark iron hoof blocks.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/21.png','Tall fluted column with a spiral staircase wrapping the circular base — shows the full column height in context.')">
+                        <img src="images/21.png" alt="Column base with spiral stairs">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Column & staircase —</span> Full-height fluted column with a spiral staircase wrapping the circular base.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/22.png','Walled citadel from a different angle — showing the full semicircular wall, gate, and interior temple arrangement.')">
+                        <img src="images/22.png" alt="Walled citadel second angle">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Citadel (alt view) —</span> Different angle showing the gate entrance, semicircular wall, and interior temple columns.</p>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="img-wrap h-64" onclick="showModal('images/23.png','Textured marble wall section — white marble with dark stone trim capping, and a single column prop with PBR materials applied.')">
+                        <img src="images/23.png" alt="Textured marble wall">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Textured wall section —</span> White marble walls with dark stone trim capping and a single column prop — full PBR pass.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP 3: STADIUM ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Environment Modelling</div>
+            <div class="group-title">Stadium & Arena</div>
+            <p class="group-desc">Modelling a large-scale sports stadium interior and a separate arena/racetrack layout, built from reference plans in Blender. Focused on structural accuracy and scale.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Environment Art</span>
+                <span class="tool-tag">Reference Modelling</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 reveal-stagger">
+                <div>
+                    <div class="img-wrap h-60" onclick="showModal('images/20.png','Stadium interior blockout — tiered seating banks, cantilevered roof, and central pitch area in grey mesh.')">
+                        <img src="images/20.png" alt="Stadium interior">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Stadium blockout —</span> Tiered seating banks, cantilevered roof structure, and central pitch — grey mesh stage.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-60" onclick="showModal('images/10.png','Arena/racetrack floor plan — U-shaped track boundary extruded and placed over reference blueprints in Blender viewport.')">
+                        <img src="images/10.png" alt="Arena racetrack layout">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Arena layout —</span> U-shaped track boundary modelled over reference blueprints in Blender viewport.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP 4: VEHICLES ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Vehicle Modelling</div>
+            <div class="group-title">Vehicles — Biplane & Cars</div>
+            <p class="group-desc">Vehicle modelling projects — a red biplane rendered with a sky background in Blender, and two game-ready car models showing a textured version alongside its undamaged mesh.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Vehicle Modelling</span>
+                <span class="tool-tag">PBR Texturing</span>
+                <span class="tool-tag">Rendering</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 reveal-stagger">
+                <div class="md:col-span-2">
+                    <div class="img-wrap h-64" onclick="showModal('images/5.png','Red biplane render — double wing structure with wire struts, float landing gear, and sky environment background.')">
+                        <img src="images/5.png" alt="Biplane render">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Biplane —</span> Red double-wing seaplane with wire struts, float landing gear, and rendered sky background.</p>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="img-wrap h-64" onclick="showModal('images/9.png','Two car models side by side — red textured version with racing stripes on the left, grey base mesh on the right.')">
+                        <img src="images/9.png" alt="Car models">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Cars —</span> Red textured version with racing stripes alongside the grey base mesh variant.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP 5: ARCHITECTURE CONCEPTS ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Architectural Concepts</div>
+            <div class="group-title">Building & Environment Concepts</div>
+            <p class="group-desc">Architectural modelling explorations — a set of building concepts at varying stages of completion, and a detailed archway structure with integrated planting.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Architecture</span>
+                <span class="tool-tag">Environment Design</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 reveal-stagger">
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/6.png','Architecture concepts — a ruined structure with vegetation on the left, and a clean cubic building with entrance steps on the right.')">
+                        <img src="images/6.png" alt="Building concepts">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Architecture concepts —</span> Ruined overgrown structure on the left, clean cubic building with steps on the right.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/7.png','Curved archway with hanging plant growth and a rounded lantern prop on the right side.')">
+                        <img src="images/7.png" alt="Archway with plants">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Archway —</span> Curved arch with hanging plant growth along the top and a rounded lantern prop.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP 6: MISC MODELS ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Miscellaneous Models</div>
+            <div class="group-title">Props & Practice Pieces</div>
+            <p class="group-desc">Smaller modelling exercises and prop work — a stylised cartoon fish character and a hand/arm model used to practice organic modelling techniques.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Organic Modelling</span>
+                <span class="tool-tag">Prop Design</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 reveal-stagger">
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/8.png','Cartoon fish character — chunky rounded body, large expressive eye, open mouth, and small fins.')">
+                        <img src="images/8.png" alt="Cartoon fish">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Fish character —</span> Chunky cartoon fish with a large expressive eye, open mouth, and small fins.</p>
+                </div>
+                <div>
+                    <div class="img-wrap contain h-56" onclick="showModal('images/16.png','Hand and arm with bone rig — flat overhead view showing the finger, knuckle, and wrist joint setup in Blender.')">
+                        <img src="images/16.png" alt="Hand rig top view">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Hand rig (alt view) —</span> Overhead view of the hand and forearm bone rig in Blender showing the full joint hierarchy.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP: LOG CABIN ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Environment Asset · Full Pipeline</div>
+            <div class="group-title">Log Cabin</div>
+            <p class="group-desc">A fully modelled and textured log cabin built from scratch in Blender — from grey untextured blockout through to a complete PBR texture pass. Includes detailed porch construction with railings, a blood-stained door prop, and a full wood texture breakdown sheet showing the individual materials used across the asset.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Substance Painter</span>
+                <span class="tool-tag">PBR Texturing</span>
+                <span class="tool-tag">Environment Art</span>
+                <span class="tool-tag">Prop Modelling</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 reveal-stagger">
+                <div class="md:col-span-2">
+                    <div class="img-wrap h-60" onclick="showModal('images/extra_cabin.png','Log cabin — fully textured final render showing the complete building with snow-dusted roof, log wall texture, and porch.')">
+                        <img src="images/extra_cabin.png" alt="Log cabin final render">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Final render —</span> Completed log cabin with snow-dusted roof, detailed log wall texture, and front porch.</p>
+                </div>
+                <div>
+                    <div class="img-wrap contain h-72" onclick="showModal('images/extra_cabinuntextured.png','Untextured grey mesh breakdown — full cabin model sheet showing the overall structure plus close-ups of the door, roof corner, floor planks, and log joint detail.')">
+                        <img src="images/extra_cabinuntextured.png" alt="Cabin untextured mesh">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Mesh breakdown —</span> Grey untextured model sheet with close-ups of door, roof corner, floor, and log joint.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/extra_porch.png','Porch close-up — detailed view of the entrance canopy, columns, lattice railings, and steps leading up to the blood-stained door.')">
+                        <img src="images/extra_porch.png" alt="Cabin porch close-up">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Porch —</span> Entrance canopy, columns, lattice railings, and steps — with the door visible at the back.</p>
+                </div>
+                <div>
+                    <div class="img-wrap contain h-56" onclick="showModal('images/extra_door.png','Blood-stained wooden door prop — wood grain texture with red splatter detail, metal panel with handle and hex bolt lock.')">
+                        <img src="images/extra_door.png" alt="Bloody door prop">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Door prop —</span> Wood grain door with blood splatter texture, metal panel, handle, and hex bolt lock.</p>
+                </div>
+                <div>
+                    <div class="img-wrap contain h-56" onclick="showModal('images/extra_railings.png','Railing prop — three views (front, straight-on, and side angle) of the white weathered metal railing section used on the cabin porch.')">
+                        <img src="images/extra_railings.png" alt="Railing prop three views">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Railings —</span> Three angles of the weathered white metal railing section used on the cabin porch.</p>
+                </div>
+                <div class="md:col-span-3">
+                    <div class="img-wrap contain h-72" onclick="showModal('images/extra_cabinwood.png','Texture breakdown sheet — collage of all individual materials from the cabin project: full exterior views, porch close-up, log ends, floor planks, stone steps, and raw timber pieces.')">
+                        <img src="images/extra_cabinwood.png" alt="Cabin texture breakdown">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Texture sheet —</span> Full material breakdown — all cabin textures laid out including log walls, floor planks, stone steps, and porch detail.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP: WEAPONS ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Weapon Props · PBR</div>
+            <div class="group-title">Weapons</div>
+            <p class="group-desc">Two weapon props modelled and textured in Blender with Substance Painter — a medieval-style dagger with a blood and rust texture pass, and a crossbow with wood stock and wrapped cord grip.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Substance Painter</span>
+                <span class="tool-tag">PBR Texturing</span>
+                <span class="tool-tag">Weapon Props</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 reveal-stagger">
+                <div>
+                    <div class="img-wrap h-80" onclick="showModal('images/extra_sword.png','Medieval dagger — double-edged blade with blood and rust weathering, wrapped grip with tweed texture, and a circular ring pommel. Rendered over a rocky ground environment.')">
+                        <img src="images/extra_sword.png" alt="Medieval dagger">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Dagger —</span> Double-edged blade with blood and rust weathering, tweed-wrapped grip, and ring pommel.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-64" onclick="showModal('images/extra_crossbow.png','Crossbow prop — wooden stock with green cord wrapping, metal rail, black limbs, and string. Clean PBR material pass.')">
+                        <img src="images/extra_crossbow.png" alt="Crossbow prop">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Crossbow —</span> Wooden stock with cord wrapping, metal rail, black limbs, and bowstring.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP: PROPS ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Prop Modelling · Various</div>
+            <div class="group-title">Props & Everyday Objects</div>
+            <p class="group-desc">A varied set of standalone prop models — a park bench, industrial cable spools, a DJ controller scene, a smartwatch render, a stone disk/gear piece, and an overgrown stone well. Each explores different materials and rendering environments.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Substance Painter</span>
+                <span class="tool-tag">KeyShot</span>
+                <span class="tool-tag">PBR Texturing</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 reveal-stagger">
+                <div>
+                    <div class="img-wrap h-52" onclick="showModal('images/extra_bench.png','Park bench — wooden slats with metal cast iron frame and armrests, placed in a workshop/garage environment. PBR wood and metal textures.')">
+                        <img src="images/extra_bench.png" alt="Park bench">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Park bench —</span> Wooden slatted bench with cast iron frame, textured with PBR wood and metal materials.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-52" onclick="showModal('images/extra_spools.png','Industrial cable spools — two large reels of black and white cable on wooden drum frames, placed in a street environment. Close-up overhead angle.')">
+                        <img src="images/extra_spools.png" alt="Cable spools">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Cable spools —</span> Two industrial reels of black and white cable on wooden drum frames.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-52" onclick="showModal('images/extra_dj.png','DJ controller scene — full DJ setup with two jog wheels, mixer, pads, and knobs on a black desk. Headphones, a Los Pollos Hermanos cup, and a laptop also on the desk.')">
+                        <img src="images/extra_dj.png" alt="DJ controller scene">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">DJ controller —</span> Full DJ setup with jog wheels, mixer, pads, headphones, laptop, and a Los Pollos Hermanos cup.</p>
+                </div>
+                <div>
+                    <div class="img-wrap contain h-52" onclick="showModal('images/extra_watch.png','Smartwatch render — black Apple Watch style model with activity rings on the screen face, lying on a rocky ground environment.')">
+                        <img src="images/extra_watch.png" alt="Smartwatch render">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Smartwatch —</span> Apple Watch-style model with activity ring display, rendered on a rocky ground environment.</p>
+                </div>
+                <div>
+                    <div class="img-wrap contain h-52" onclick="showModal('images/extra_disk.png','Stone disk/gear prop — a dark stone circular piece with stepped notch cuts around the outer and inner rim, like a large mechanical gear or well cover.')">
+                        <img src="images/extra_disk.png" alt="Stone disk prop">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Stone disk —</span> Dark stone circular piece with stepped notch cuts around the rim — gear or well cover prop.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-64" onclick="showModal('images/extra_well.png','Overgrown stone well — looking straight down into a circular brick well with a wooden bucket hanging on a rope. Dense ivy and dead wood surrounding the rim.')">
+                        <img src="images/extra_well.png" alt="Stone well">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Stone well —</span> Top-down view of a brick well with a hanging bucket, surrounded by dense ivy and dead wood.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP: CHARACTERS & FUN MODELS ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Character & Fun Models</div>
+            <div class="group-title">Characters & Stylised Models</div>
+            <p class="group-desc">Stylised character models and fun renders — two rubber ducks (a standard yellow and a Batman-themed version) rendered on a sea environment, and two Minecraft-style voxel mob heads (chicken and pig) as prop models.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">PBR Texturing</span>
+                <span class="tool-tag">Character Modelling</span>
+                <span class="tool-tag">Stylised</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 reveal-stagger">
+                <div>
+                    <div class="img-wrap h-72" onclick="showModal('images/extra_ducks.png','Two rubber ducks on an ocean environment — a black Batman duck with white eye markings and Batman logo on the left, and a standard yellow rubber duck on the right.')">
+                        <img src="images/extra_ducks.png" alt="Rubber ducks">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Rubber ducks —</span> Batman-themed and standard yellow rubber ducks rendered on an ocean environment.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-72" onclick="showModal('images/extra_mobs.png','Minecraft-style mob heads — a voxel chicken head (white with yellow beak and red wattle) and a pink pig head side by side.')">
+                        <img src="images/extra_mobs.png" alt="Minecraft mob heads">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Minecraft mobs —</span> Voxel chicken and pig heads modelled in the Minecraft block style.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT GROUP: ARCHITECTURE ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Architecture · Environment</div>
+            <div class="group-title">Architecture & Structures</div>
+            <p class="group-desc">Two standalone architecture models — a detailed New York-style multi-storey brick building with a metal fire escape staircase, and a geodesic dome structure on a flat rooftop with countryside views.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Substance Painter</span>
+                <span class="tool-tag">Architecture</span>
+                <span class="tool-tag">PBR Texturing</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 reveal-stagger">
+                <div>
+                    <div class="img-wrap h-64" onclick="showModal('images/extra_building.jpg','Multi-storey brick building — red brick facade with arched windows, concrete base, and a detailed metal fire escape staircase on the left side. Rendered against a cloudy sky.')">
+                        <img src="images/extra_building.jpg" alt="Brick building">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Brick building —</span> Red brick facade with arched windows and a detailed metal fire escape staircase.</p>
+                </div>
+                <div>
+                    <div class="img-wrap h-64" onclick="showModal('images/extra_dome.png','Geodesic dome on a rooftop — white triangular panel dome with dark accent panels forming a diamond pattern, sitting on a flat tiled roof with wooden fence railings. Countryside horizon behind.')">
+                        <img src="images/extra_dome.png" alt="Geodesic dome">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Geodesic dome —</span> Triangular panel dome with diamond accent windows on a flat rooftop, countryside behind.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="max-w-5xl mx-auto px-8 pb-20 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm reveal">
+        <a href="index.html#projects" class="inline-flex items-center gap-x-2 transition hover:text-[#ef4444]" style="color:var(--text-muted)">
+            <i class="fa-solid fa-arrow-left"></i> Back to all projects
+        </a>
+        <a href="project-games.html" class="inline-flex items-center gap-x-2 text-[#ef4444] hover:text-red-400 transition">
+            Next: Games Development <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- IMAGE MODAL -->
+    <div id="image-modal" onclick="if(event.target.id==='image-modal')closeModal()" class="hidden fixed inset-0 bg-black/95 z-[200] items-center justify-center p-6">
+        <div onclick="event.stopImmediatePropagation()" class="max-w-5xl w-full">
+            <div class="flex justify-end mb-3">
+                <button onclick="closeModal()" class="text-white/70 hover:text-white text-3xl leading-none">×</button>
+            </div>
+            <img id="modal-img" class="w-full max-h-[80dvh] object-contain rounded-2xl shadow-2xl" alt="">
+            <p id="modal-cap" class="text-center mt-4 max-w-2xl mx-auto text-[15px]" style="color:var(--text-muted)"></p>
+        </div>
+    </div>
+
+    <footer class="border-t py-8 text-center text-xs" style="border-color:var(--divider);color:var(--footer-text)">
+        <p>© Toby Hall 2026 • Thank you for visiting</p>
+    </footer>
+
+    <script>
+        const _html  = document.documentElement;
+        const _label = document.getElementById('toggle-label');
+        const _icon  = document.getElementById('toggle-icon');
+        function setTheme(t){_html.setAttribute('data-theme',t);if(_label)_label.textContent=t==='dark'?'DARK':'LIGHT';if(_icon)_icon.textContent=t==='dark'?'🌙':'☀️';}
+        function toggleTheme(){const n=_html.getAttribute('data-theme')==='dark'?'light':'dark';setTheme(n);localStorage.setItem('th-theme',n);}
+        setTheme(localStorage.getItem('th-theme')||'dark');
+
+        function toggleMobileMenu(){const m=document.getElementById('mobile-menu');if(m)m.classList.toggle('hidden');}
+        document.addEventListener('keydown',e=>{if(e.key==='Escape'){const m=document.getElementById('mobile-menu');if(m)m.classList.add('hidden');closeModal();}});
+
+        function showModal(src,cap){
+            document.getElementById('modal-img').src=src;
+            document.getElementById('modal-cap').textContent=cap;
+            const m=document.getElementById('image-modal');
+            m.classList.remove('hidden');m.classList.add('flex');
+            document.body.style.overflow='hidden';
+        }
+        function closeModal(){
+            const m=document.getElementById('image-modal');
+            m.classList.remove('flex');m.classList.add('hidden');
+            document.body.style.overflow='';
+        }
+
+        const obs=new IntersectionObserver((entries)=>{
+            entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+        },{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+        document.querySelectorAll('.reveal,.reveal-stagger').forEach(el=>obs.observe(el));
+    </script>
+</body>
+</html>

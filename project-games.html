@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games Development • Toby Hall</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='23' font-size='22' font-weight='700' fill='%23ef4444' text-anchor='middle' font-family='Inter, system-ui, sans-serif'%3ETH%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        :root {
+            --accent:#ef4444; --accent-hover:#dc2626; --accent-shadow:rgba(239,68,68,0.30);
+            --bg:#050505; --bg-alt:#0a0a0a; --surface:rgba(15,15,15,0.75); --surface-border:rgba(255,255,255,0.08);
+            --nav-bg:rgba(5,5,5,0.95); --nav-border:rgba(255,255,255,0.10);
+            --text:#f4f4f5; --text-muted:#a1a1aa; --text-faint:#6b7280; --text-body:#d1d5db;
+            --tag-bg:rgba(255,255,255,0.05); --tag-text:#a1a1aa;
+            --divider:rgba(255,255,255,0.08); --hover-border:rgba(239,68,68,0.30);
+            --footer-text:#6b7280; --mobile-bg:#050505;
+        }
+        [data-theme="light"] {
+            --bg:#f7f7f7; --bg-alt:#ffffff; --surface:rgba(255,255,255,0.72); --surface-border:rgba(0,0,0,0.07);
+            --nav-bg:rgba(247,247,247,0.95); --nav-border:rgba(0,0,0,0.08);
+            --text:#111111; --text-muted:#555555; --text-faint:#888888; --text-body:#374151;
+            --tag-bg:rgba(0,0,0,0.05); --tag-text:#555555;
+            --divider:rgba(0,0,0,0.08); --hover-border:rgba(239,68,68,0.25);
+            --footer-text:#aaaaaa; --mobile-bg:#ffffff;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);transition:background 0.35s,color 0.35s;-webkit-font-smoothing:antialiased}
+        a{color:inherit;text-decoration:none}
+        .heading{font-family:'Space Grotesk','Inter',sans-serif;font-weight:600;letter-spacing:-0.04em}
+        .glass{background:var(--surface);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--surface-border);transition:background 0.35s,border-color 0.35s}
+        nav{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--nav-border);background:var(--nav-bg);backdrop-filter:blur(24px);transition:background 0.35s,border-color 0.35s}
+        .nav-link{transition:color 0.2s;color:var(--text-muted);font-size:0.875rem;font-weight:500}
+        .nav-link:hover{color:var(--accent)}
+        .theme-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+        .toggle-track{width:44px;height:24px;border-radius:12px;background:#333;position:relative;transition:background 0.3s;flex-shrink:0}
+        [data-theme="light"] .toggle-track{background:#d1d5db}
+        .toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);display:flex;align-items:center;justify-content:center;font-size:10px}
+        [data-theme="light"] .toggle-thumb{transform:translateX(20px)}
+        .toggle-label{font-size:0.72rem;font-weight:600;letter-spacing:0.06em;color:var(--text-muted)}
+        .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.65s cubic-bezier(0.23,1,0.32,1),transform 0.65s cubic-bezier(0.23,1,0.32,1)}
+        .reveal.visible{opacity:1;transform:translateY(0)}
+        .reveal-stagger>*{opacity:0;transform:translateY(24px);transition:opacity 0.55s cubic-bezier(0.23,1,0.32,1),transform 0.55s cubic-bezier(0.23,1,0.32,1)}
+        .reveal-stagger.visible>*:nth-child(1){opacity:1;transform:translateY(0);transition-delay:0.05s}
+        .reveal-stagger.visible>*:nth-child(2){opacity:1;transform:translateY(0);transition-delay:0.15s}
+        .reveal-stagger.visible>*:nth-child(3){opacity:1;transform:translateY(0);transition-delay:0.25s}
+        .reveal-stagger.visible>*:nth-child(4){opacity:1;transform:translateY(0);transition-delay:0.35s}
+        .reveal-stagger.visible>*:nth-child(5){opacity:1;transform:translateY(0);transition-delay:0.45s}
+        #mobile-menu{background:var(--mobile-bg);transition:background 0.35s}
+        .divider{border-color:var(--divider)}
+        .blog-caption{font-size:13.5px;line-height:1.6;color:var(--text-muted)}
+        .img-wrap{overflow:hidden;border-radius:1.5rem;cursor:pointer}
+        .img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.23,1,0.32,1);display:block}
+        .img-wrap.contain img{object-fit:contain;background:#111}
+        [data-theme="light"] .img-wrap.contain img{background:#f0f0f0}
+        .img-wrap:hover img{transform:scale(1.04)}
+        .proj-group{background:var(--surface);border:1px solid var(--surface-border);border-radius:1.5rem;padding:2rem;transition:border-color 0.3s}
+        .proj-group:hover{border-color:var(--hover-border)}
+        .group-label{font-size:0.65rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#ef4444;margin-bottom:0.4rem}
+        .group-title{font-size:1.4rem;font-weight:700;letter-spacing:-0.025em;color:var(--text);margin-bottom:0.5rem}
+        .group-desc{font-size:0.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:1.5rem}
+        .tool-row{display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:1.5rem}
+        .tool-tag{font-size:0.65rem;padding:0.15rem 0.55rem;border-radius:100px;background:var(--tag-bg);border:1px solid var(--surface-border);color:var(--tag-text)}
+        @media(prefers-reduced-motion:reduce){.reveal,.reveal-stagger>*{transition:none;opacity:1;transform:none}}
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-x-3">
+                    <a href="index.html" class="flex items-center justify-center w-11 h-11 rounded-2xl bg-[#ef4444] shadow-sm flex-shrink-0">
+                        <span class="font-bold text-white text-[26px] tracking-[-2.5px] font-sans">TH</span>
+                    </a>
+                    <a href="index.html" class="font-semibold text-3xl tracking-tighter hover:text-[#ef4444] transition" style="color:var(--text)">Toby Hall</a>
+                </div>
+                <div class="hidden md:flex items-center gap-x-8">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="index.html#updates" class="nav-link">Updates</a>
+                    <a href="about.html" class="nav-link">About</a>
+                    <a href="employment.html" class="nav-link">Employment</a>
+                    <a href="index.html#projects" class="nav-link">Projects</a>
+                    <a href="contact.html" class="nav-link">Contact Me</a>
+                </div>
+                <div class="flex items-center gap-x-5">
+                    <label class="theme-toggle" title="Toggle light/dark">
+                        <span class="toggle-label hidden sm:block" id="toggle-label">DARK</span>
+                        <div class="toggle-track" onclick="toggleTheme()">
+                            <div class="toggle-thumb"><span id="toggle-icon">🌙</span></div>
+                        </div>
+                    </label>
+                    <button onclick="toggleMobileMenu()" class="md:hidden w-10 h-10 flex items-center justify-center" style="color:var(--text-muted)">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="mobile-menu" class="hidden fixed inset-0 z-[200] md:hidden">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-12">
+                <div class="flex items-center gap-x-3">
+                    <a href="index.html" class="w-9 h-9 bg-[#ef4444] rounded-2xl flex items-center justify-center">
+                        <span class="font-bold text-white text-2xl tracking-[-2px]">TH</span>
+                    </a>
+                    <span class="font-semibold text-2xl" style="color:var(--text)">Toby Hall</span>
+                </div>
+                <button onclick="toggleMobileMenu()" class="text-4xl leading-none" style="color:var(--text-muted)">×</button>
+            </div>
+            <div class="flex flex-col gap-y-6 text-2xl font-medium" style="color:var(--text)">
+                <a href="index.html" class="py-1" onclick="toggleMobileMenu()">Home</a>
+                <a href="index.html#updates" class="py-1" onclick="toggleMobileMenu()">Updates</a>
+                <a href="about.html" class="py-1" onclick="toggleMobileMenu()">About</a>
+                <a href="employment.html" class="py-1" onclick="toggleMobileMenu()">Employment</a>
+                <a href="index.html#projects" class="py-1" onclick="toggleMobileMenu()">Projects</a>
+                <a href="contact.html" class="py-1" onclick="toggleMobileMenu()">Contact Me</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE HEADER -->
+    <div class="max-w-5xl mx-auto px-8 pt-14 pb-10 reveal">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
+            <span class="px-4 py-1.5 text-xs tracking-[2px] font-semibold glass rounded-3xl" style="color:var(--text-muted)">College & University · 2023–Present</span>
+            <span class="text-[#ef4444] text-sm font-medium">Unity · Unreal Engine 5 · C# · Python</span>
+        </div>
+        <h1 class="heading text-7xl tracking-tighter" style="color:var(--text)">Games Development</h1>
+        <p class="mt-4 text-xl max-w-2xl" style="color:var(--text-muted)">Game projects across college and university — from a solo sci-fi exploration game and an ancient Greece educational series, to commission work for AI research.</p>
+        <div class="flex flex-wrap gap-3 mt-8">
+            <div class="glass px-5 py-2 rounded-2xl text-sm flex items-center gap-x-2">
+                <i class="fa-solid fa-gamepad text-[#ef4444]"></i>
+                <span style="color:var(--text)">Unity · Unreal Engine 5 · C# · Python</span>
+            </div>
+            <div class="glass px-5 py-2 rounded-2xl text-sm flex items-center gap-x-2">
+                <i class="fa-solid fa-clock text-[#ef4444]"></i>
+                <span style="color:var(--text)">2023 – Present</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT 1: ASTROS VISIT ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Solo Game · College Final Major Project</div>
+            <div class="group-title">Astros Visit</div>
+            <p class="group-desc">A first-person exploration game set in 2099. Earth has been abandoned following an irreversible nuclear disaster — the human race has moved to Mars as a temporary measure. You play as an astronaut returning to Earth to assess whether the planet is habitable again. The game takes place inside an overgrown, post-apocalyptic power plant, with the player navigating decaying industrial environments reclaimed by nature.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Unity</span>
+                <span class="tool-tag">C#</span>
+                <span class="tool-tag">Level Design</span>
+                <span class="tool-tag">Environment Art</span>
+                <span class="tool-tag">3D Modelling</span>
+                <span class="tool-tag">Blender</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 reveal-stagger">
+
+                <div class="md:col-span-3">
+                    <div class="img-wrap h-72" onclick="showModal('images/game_5.png','Power plant interior — looking up at a massive vine-covered green column rising through a derelict industrial space, light filtering through gaps in the ceiling.')">
+                        <img src="images/game_5.png" alt="Power plant interior with vines">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Interior —</span> Looking up through the spaceship interior — the central column rising through the decaying structure, vines reclaiming the overgrown environment.</p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <div class="img-wrap h-64" onclick="showModal('images/game_12.png','Energy column close-up — the green glowing central column surrounded by concrete walls with climbing vines.')">
+                        <img src="images/game_12.png" alt="Energy column close-up">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Energy column —</span> Close-up of the glowing green central column with climbing vines covering the concrete walls.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap h-64" onclick="showModal('images/game_11.png','Dark interior scene — the astronaut character silhouetted in a dimly lit wooden-panelled room, helmet visible with gold chain detail.')">
+                        <img src="images/game_11.png" alt="Astronaut character in game">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Character in scene —</span> The astronaut character silhouetted in a dark wooden-panelled interior room.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/game_10.png','Circular arena space — curved wooden seating banks surrounding a circular floor area, with the translucent green column at the centre.')">
+                        <img src="images/game_10.png" alt="Circular arena space">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Circular arena —</span> Curved wooden seating banks surrounding the circular floor of the power plant interior.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap h-56" onclick="showModal('images/game_13.png','Astros Visit guide screen — showing the game title, lore text, and a spacecraft orbiting Earth and Mars in a starfield.')">
+                        <img src="images/game_13.png" alt="Astros Visit menu screen">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Main menu —</span> The guide screen showing the lore: Earth abandoned in 2099 after a nuclear disaster, the player must return from Mars to assess if it's habitable again.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT 2: ANCIENT GREECE INTERACTIVE EDUCATIONAL SERIES ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Interactive Educational Series · College Project</div>
+            <div class="group-title">Ancient Greece Interactive Educational Series</div>
+            <p class="group-desc">A fully rendered interactive educational game series set in Ancient Greece. Covers key historical settings including the Acropolis, the Circus Maximus chariot racing arena, and the Trojan Horse. Assets were modelled in Blender, textured with PBR materials, and brought into Unity for gameplay. The project involved full environment design, character placement, and interactive scene building.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Unity</span>
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Substance Painter</span>
+                <span class="tool-tag">Environment Art</span>
+                <span class="tool-tag">PBR Texturing</span>
+                <span class="tool-tag">Level Design</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 reveal-stagger">
+
+                <div class="md:col-span-2">
+                    <div class="img-wrap h-72" onclick="showModal('images/game_2.png','Fully textured and lit Acropolis scene in Unity — marble and stone structures on a rocky hill, golden details on the temple pediment, rendered with sky and terrain.')">
+                        <img src="images/game_2.png" alt="Acropolis in Unity">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Acropolis — fully rendered —</span> Textured and lit Acropolis scene in Unity with marble surfaces, golden pediment details, rocky hill base, and a sky environment.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap h-60" onclick="showModal('images/game_4.png','Circus Maximus — chariot racers and horses lined up at the marble arched starting gates, grandstand steps visible to the right.')">
+                        <img src="images/game_4.png" alt="Circus Maximus chariots">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Circus Maximus —</span> Chariots and horses lined up at the marble arched starting gates, grandstand visible to the right.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap h-60" onclick="showModal('images/game_5.png','Chariot lineup — charioteers standing in coloured chariots at the stone arch starting gates, mountainous backdrop.')">
+                        <img src="images/game_5.png" alt="Chariot lineup stone arches">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Chariot lineup —</span> Charioteers standing in their coloured chariots at the stone arch starting gates.</p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <div class="img-wrap h-72" onclick="showModal('images/game_3.png','Trojan Horse in-game scene — large wooden horse on a wheeled platform inside a walled citadel, a warrior standing behind it, sunset sky and golden sand dunes beyond the gate.')">
+                        <img src="images/game_3.png" alt="Trojan Horse scene">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Trojan Horse —</span> The wooden horse on its wheeled platform inside the walled citadel, a warrior behind it, the gate open to golden sand dunes and a sunset sky.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PROJECT 3: ML AGENTS COMMISSION ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">Commission Work · Unity ML-Agents</div>
+            <div class="group-title">AI Emotion Adoption — ML-Agents Commission</div>
+            <p class="group-desc">Commission work for a Unity ML-Agents deep learning research project exploring how AI agents can adopt and express emotions. My role involved creating the agent character models in Blender — small blob-like creatures rendered in different colours to represent different emotional states. The models were built to be simple enough for real-time use in a reinforcement learning environment while still having a clear visual identity per emotion. Also included a concept aircraft render produced as part of the same commission.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Blender</span>
+                <span class="tool-tag">Unity ML-Agents</span>
+                <span class="tool-tag">Character Modelling</span>
+                <span class="tool-tag">Commission</span>
+                <span class="tool-tag">AI Research</span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal-stagger">
+
+                <div>
+                    <div class="img-wrap contain h-64" onclick="showModal('images/game_6.png','Blue emotion agent — small rounded blob character with two black oval eyes, smooth surface, representing one emotional state.')">
+                        <img src="images/game_6.png" alt="Blue emotion agent">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Blue agent —</span> Rounded blob character with black oval eyes representing one emotional state.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap contain h-64" onclick="showModal('images/game_8.png','Green emotion agent — same blob form as the blue agent but in bright green, representing a different emotional state.')">
+                        <img src="images/game_8.png" alt="Green emotion agent">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Green agent —</span> Same blob form in bright green representing a different emotional state.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap contain h-64" onclick="showModal('images/game_9.png','Yellow emotion agent — same base model in yellow, teardrop-shaped eyes giving a slightly different expression.')">
+                        <img src="images/game_9.png" alt="Yellow emotion agent">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Yellow agent —</span> Yellow variant with teardrop-shaped eyes giving a slightly different expression.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap contain h-64" onclick="showModal('images/game_1.png','Red emotion agent — same blob form in deep red, with flat oval eyes giving a more intense or negative emotional expression.')">
+                        <img src="images/game_1.png" alt="Red emotion agent">
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Red agent —</span> Red variant with flat oval eyes, expressing a more intense emotional state.</p>
+                </div>
+
+            </div>
+
+            <!-- Aircraft placeholder — upload game aircraft image when ready -->
+
+        </div>
+    </div>
+
+
+    <!-- ═══ PROJECT 4: NEW PROJECT — IMAGES TO BE ADDED ═══ -->
+    <div class="max-w-5xl mx-auto px-8 pb-16">
+        <div class="proj-group reveal">
+            <div class="group-label">College Project</div>
+            <div class="group-title">New Project</div>
+            <p class="group-desc">Add your project description here.</p>
+            <div class="tool-row">
+                <span class="tool-tag">Add tools here</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 reveal-stagger">
+
+                <div>
+                    <div class="img-wrap h-56" style="background:var(--surface);display:flex;align-items:center;justify-content:center;" onclick="">
+                        <div class="text-center" style="color:var(--text-faint)"><i class="fa-solid fa-image text-3xl mb-2 block"></i><p class="text-xs tracking-wider">ADD IMAGE 1</p></div>
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Image 1 —</span> Add your caption here.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap h-56" style="background:var(--surface);display:flex;align-items:center;justify-content:center;" onclick="">
+                        <div class="text-center" style="color:var(--text-faint)"><i class="fa-solid fa-image text-3xl mb-2 block"></i><p class="text-xs tracking-wider">ADD IMAGE 2</p></div>
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Image 2 —</span> Add your caption here.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap h-56" style="background:var(--surface);display:flex;align-items:center;justify-content:center;" onclick="">
+                        <div class="text-center" style="color:var(--text-faint)"><i class="fa-solid fa-image text-3xl mb-2 block"></i><p class="text-xs tracking-wider">ADD IMAGE 3</p></div>
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Image 3 —</span> Add your caption here.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap h-56" style="background:var(--surface);display:flex;align-items:center;justify-content:center;" onclick="">
+                        <div class="text-center" style="color:var(--text-faint)"><i class="fa-solid fa-image text-3xl mb-2 block"></i><p class="text-xs tracking-wider">ADD IMAGE 4</p></div>
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Image 4 —</span> Add your caption here.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap h-56" style="background:var(--surface);display:flex;align-items:center;justify-content:center;" onclick="">
+                        <div class="text-center" style="color:var(--text-faint)"><i class="fa-solid fa-image text-3xl mb-2 block"></i><p class="text-xs tracking-wider">ADD IMAGE 5</p></div>
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Image 5 —</span> Add your caption here.</p>
+                </div>
+
+                <div>
+                    <div class="img-wrap h-56" style="background:var(--surface);display:flex;align-items:center;justify-content:center;" onclick="">
+                        <div class="text-center" style="color:var(--text-faint)"><i class="fa-solid fa-image text-3xl mb-2 block"></i><p class="text-xs tracking-wider">ADD IMAGE 6</p></div>
+                    </div>
+                    <p class="blog-caption mt-3"><span class="font-medium" style="color:var(--text)">Image 6 —</span> Add your caption here.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="max-w-5xl mx-auto px-8 pb-20 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm reveal">
+        <a href="index.html#projects" class="inline-flex items-center gap-x-2 transition hover:text-[#ef4444]" style="color:var(--text-muted)">
+            <i class="fa-solid fa-arrow-left"></i> Back to all projects
+        </a>
+        <a href="project-3d-modelling.html" class="inline-flex items-center gap-x-2 text-[#ef4444] hover:text-red-400 transition">
+            Next: 3D Modelling <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- IMAGE MODAL -->
+    <div id="image-modal" onclick="if(event.target.id==='image-modal')closeModal()" class="hidden fixed inset-0 bg-black/95 z-[200] items-center justify-center p-6">
+        <div onclick="event.stopImmediatePropagation()" class="max-w-5xl w-full">
+            <div class="flex justify-end mb-3">
+                <button onclick="closeModal()" class="text-white/70 hover:text-white text-3xl leading-none">×</button>
+            </div>
+            <img id="modal-img" class="w-full max-h-[80dvh] object-contain rounded-2xl shadow-2xl" alt="">
+            <p id="modal-cap" class="text-center mt-4 max-w-2xl mx-auto text-[15px]" style="color:var(--text-muted)"></p>
+        </div>
+    </div>
+
+    <footer class="border-t py-8 text-center text-xs" style="border-color:var(--divider);color:var(--footer-text)">
+        <p>© Toby Hall 2026 • Thank you for visiting</p>
+    </footer>
+
+    <script>
+        const _html=document.documentElement;
+        const _label=document.getElementById('toggle-label');
+        const _icon=document.getElementById('toggle-icon');
+        function setTheme(t){_html.setAttribute('data-theme',t);if(_label)_label.textContent=t==='dark'?'DARK':'LIGHT';if(_icon)_icon.textContent=t==='dark'?'🌙':'☀️';}
+        function toggleTheme(){const n=_html.getAttribute('data-theme')==='dark'?'light':'dark';setTheme(n);localStorage.setItem('th-theme',n);}
+        setTheme(localStorage.getItem('th-theme')||'dark');
+        function toggleMobileMenu(){const m=document.getElementById('mobile-menu');if(m)m.classList.toggle('hidden');}
+        document.addEventListener('keydown',e=>{if(e.key==='Escape'){const m=document.getElementById('mobile-menu');if(m)m.classList.add('hidden');closeModal();}});
+        function showModal(src,cap){
+            document.getElementById('modal-img').src=src;
+            document.getElementById('modal-cap').textContent=cap;
+            const m=document.getElementById('image-modal');
+            m.classList.remove('hidden');m.classList.add('flex');
+            document.body.style.overflow='hidden';
+        }
+        function closeModal(){
+            const m=document.getElementById('image-modal');
+            m.classList.remove('flex');m.classList.add('hidden');
+            document.body.style.overflow='';
+        }
+        const obs=new IntersectionObserver((entries)=>{
+            entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+        },{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+        document.querySelectorAll('.reveal,.reveal-stagger').forEach(el=>obs.observe(el));
+    </script>
+</body>
+</html>
